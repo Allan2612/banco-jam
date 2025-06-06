@@ -1,12 +1,11 @@
 "use client"
 
 import type React from "react"
-
-import { useAuthContext } from "@/components/providers/auth-provider"
+import { useAuthStore } from "@/lib/stores/auth-store"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { loading } = useAuthContext()
+  const loading = useAuthStore((state) => state.loading)
 
   if (loading) {
     return (

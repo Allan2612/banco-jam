@@ -1,11 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { useAuthContext } from "@/components/providers/auth-provider"
+import { useAuthStore } from "@/lib/stores/auth-store"
 import { LogOut } from "lucide-react"
 
 export function Header() {
-  const { user, logout } = useAuthContext()
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
 
   return (
     <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
