@@ -187,9 +187,9 @@ export default function HistoryPage() {
         <p className="text-gray-300">Consulta todas tus transacciones y movimientos</p>
       </div>
 
-      <Card className="mb-6">
+      <Card className="mb-6 bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className="flex items-center text-white">
             <Filter className="h-5 w-5 mr-2" />
             Filtros
           </CardTitle>
@@ -203,7 +203,7 @@ export default function HistoryPage() {
                   placeholder="Buscar transacciones..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -238,27 +238,31 @@ export default function HistoryPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className="flex items-center text-white">
             <History className="h-5 w-5 mr-2" />
             Transacciones
           </CardTitle>
-          <CardDescription>{filteredTransactions.length} transacciones encontradas</CardDescription>
+          <CardDescription className="text-gray-300">
+            {filteredTransactions.length} transacciones encontradas
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {filteredTransactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-between p-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
               >
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
-                    <p className="font-medium">{transaction.description}</p>
-                    <Badge variant="outline">{getTypeLabel(transaction.type)}</Badge>
+                    <p className="font-medium text-white">{transaction.description}</p>
+                    <Badge variant="outline" className="border-gray-600 text-gray-300">
+                      {getTypeLabel(transaction.type)}
+                    </Badge>
                   </div>
-                  <p className="text-sm text-gray-600">{formatDate(transaction.date)}</p>
+                  <p className="text-sm text-gray-400">{formatDate(transaction.date)}</p>
                   {transaction.fromAccount && <p className="text-xs text-gray-500">Desde: {transaction.fromAccount}</p>}
                   {transaction.toAccount && <p className="text-xs text-gray-500">Hacia: {transaction.toAccount}</p>}
                 </div>
@@ -266,7 +270,7 @@ export default function HistoryPage() {
                   <CurrencyDisplay
                     amount={transaction.amount}
                     currency={transaction.currency}
-                    className={`font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}
+                    className={`font-medium ${transaction.amount > 0 ? "text-green-400" : "text-red-400"}`}
                     showSign
                   />
                   <StatusBadge status={transaction.status} />
@@ -278,7 +282,7 @@ export default function HistoryPage() {
           {filteredTransactions.length === 0 && (
             <div className="text-center py-8">
               <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No se encontraron transacciones</p>
+              <p className="text-gray-400">No se encontraron transacciones</p>
             </div>
           )}
         </CardContent>

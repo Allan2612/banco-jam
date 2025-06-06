@@ -12,27 +12,27 @@ interface AccountCardProps {
 
 export function AccountCard({ account }: AccountCardProps) {
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow bg-gray-800 border-gray-700">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CreditCard className="h-8 w-8 text-blue-600" />
+          <CreditCard className="h-8 w-8 text-blue-400" />
           <StatusBadge status={account.status} />
         </div>
-        <CardTitle className="text-lg">{account.type}</CardTitle>
-        <CardDescription className="font-mono">{account.number}</CardDescription>
+        <CardTitle className="text-lg text-white">{account.type}</CardTitle>
+        <CardDescription className="font-mono text-gray-300">{account.number}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-gray-600">Saldo disponible</p>
+            <p className="text-sm text-gray-400">Saldo disponible</p>
             <CurrencyDisplay
               amount={account.balance}
               currency={account.currency}
-              className="text-2xl font-bold text-green-600"
+              className="text-2xl font-bold text-green-400"
             />
             <p className="text-sm text-gray-500">{account.currency}</p>
           </div>
-          <Button asChild className="w-full">
+          <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
             <Link href={`/dashboard/accounts/${account.id}`}>
               <Eye className="h-4 w-4 mr-2" />
               Ver Detalles

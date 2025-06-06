@@ -10,11 +10,11 @@ interface AccountListProps {
 export function AccountList({ accounts }: AccountListProps) {
   if (accounts.length === 0) {
     return (
-      <Card>
+      <Card className="bg-gray-800 border-gray-700">
         <CardContent className="text-center py-12">
-          <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No tienes cuentas registradas</h3>
-          <p className="text-gray-600">Contacta a tu banco para abrir una nueva cuenta</p>
+          <CreditCard className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-white mb-2">No tienes cuentas registradas</h3>
+          <p className="text-gray-400">Contacta a tu banco para abrir una nueva cuenta</p>
         </CardContent>
       </Card>
     )
