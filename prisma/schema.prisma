@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  accounts  UserAccount[]
+  createdAt DateTime  @default(now())
+  logs      Log[]     
+}
+
+model Currency {
+  id     String  @id @default(uuid())
+  code   String  @unique // e.g. CRC, USD
+  name   String
+  symbol String
+  accounts Account[]
+}
+
+model Account {
+  id              String         @id @default(uuid())
+  number          String         @unique
+  iban            String         @unique
+  balance         Float          @default(0)
+  currencyId      String
+  bankId          String
+  createdAt       DateTime       @default(now())
+  currency        Currency       @relation(fields: [currencyId], references: [id])
+  bank            Bank           @relation(fields: [bankId], references: [id])
+  users           UserAccount[]
+  subscriptions   Subscription[]
+  transfersFrom   Transfer[]     @relation("TransfersFrom")
+  transfersTo     Transfer[]     @relation("TransfersTo")
+  sinpeAliases    SinpeAlias[]
+}
+
+model UserAccount {
+  userId    String
+  accountId String
+  user      User    @relation(fields: [userId], references: [id])
+  account   Account @relation(fields: [accountId], references: [id])
+  role      String  // e.g. "owner", "viewer"
+  @@id([userId, accountId])
+}
+
+model Subscription {
+  id        String    @id @default(uuid())
+  accountId String
+  account   Account   @relation(fields: [accountId], references: [id])
+  type      String    // e.g. "sinpe_movil", "alert"
+  alias     String?   // e.g. phone number
+  createdAt DateTime  @default(now())
+}
+
+model Transfer {
+  id          String    @id @default(uuid())
+  fromId      String
+  toId        String
+  from        Account   @relation("TransfersFrom", fields: [fromId], references: [id])
+  to          Account   @relation("TransfersTo", fields: [toId], references: [id])
+  amount      Float
+  date        DateTime  @default(now())
+  status      String    // e.g. "pending", "completed", "failed"
+  transactionId String  @unique
+  description  String?
+  currency     String // e.g. "EUR"
+  hmacHash     String
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  action    String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  details   String
+  timestamp DateTime @default(now())
+}
+model Bank {
+  id     String   @id @default(uuid())
+  code   String   @unique  // e.g. "BNCR"
+  name   String
+  ip     String             // Dirección IP del banco
+  sharedSecret String
+  accounts Account[]
+}
+model SinpeAlias {
+  id        String   @id @default(uuid())
+  phone     String   @unique // e.g. número de teléfono
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id])
+  createdAt DateTime @default(now())
+} 
