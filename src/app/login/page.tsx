@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -9,15 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuthContext } from "@/components/providers/auth-provider"
 import { useToast } from "@/hooks/use-toast"
+import { getUserByEmailAndPassword } from "../services/userService"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const { login } = useAuthContext()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -25,9 +22,9 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
-    const success = await login({ email, password })
+    const data = await getUserByEmailAndPassword(email, password)
 
-    if (success) {
+    if (data.success) {
       toast({
         title: "Inicio de sesión exitoso",
         description: "Bienvenido a JAM Bank",
@@ -36,7 +33,7 @@ export default function LoginPage() {
     } else {
       toast({
         title: "Error de autenticación",
-        description: "Email o contraseña incorrectos",
+        description: data.message || "Email o contraseña incorrectos",
         variant: "destructive",
       })
     }

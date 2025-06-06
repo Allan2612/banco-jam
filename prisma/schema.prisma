@@ -30,7 +30,7 @@ model Account {
   id              String         @id @default(uuid())
   number          String         @unique
   iban            String         @unique
-  balance         Float          @default(0)
+  balance         Float          @default(0)  
   currencyId      String
   bankId          String
   createdAt       DateTime       @default(now())
