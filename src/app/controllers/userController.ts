@@ -7,6 +7,9 @@ export async function createUser(name: string, email: string, password: string):
   });
 }
 
-export async function listUsers(): Promise<User[]> {
-  return prisma.user.findMany();
+
+export async function findUserByEmailAndPassword(email: string, password: string): Promise<User | null> {
+  return prisma.user.findFirst({
+    where: { email, password }
+  });
 }

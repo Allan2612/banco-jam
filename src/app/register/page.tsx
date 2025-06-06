@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuthContext } from "@/components/providers/auth-provider"
 import { useToast } from "@/hooks/use-toast"
+import { newUser } from "../services/userService"; // Asegúrate de que el import sea correcto
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
@@ -24,37 +25,37 @@ export default function RegisterPage() {
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  e.preventDefault();
 
-    if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Las contraseñas no coinciden",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setLoading(true)
-
-    const success = await register({ name, email, password })
-
-    if (success) {
-      toast({
-        title: "Registro exitoso",
-        description: "Bienvenido a JAM Bank",
-      })
-      router.push("/dashboard")
-    } else {
-      toast({
-        title: "Error de registro",
-        description: "No se pudo crear la cuenta",
-        variant: "destructive",
-      })
-    }
-
-    setLoading(false)
+  if (password !== confirmPassword) {
+    toast({
+      title: "Error",
+      description: "Las contraseñas no coinciden",
+      variant: "destructive",
+    });
+    return;
   }
+
+  setLoading(true);
+
+  const data = await newUser(name, email, password);
+
+  if (data.success) {
+    toast({
+      title: "Registro exitoso",
+      description: "Bienvenido a JAM Bank",
+    });
+    router.push("/dashboard");
+  } else {
+    toast({
+      title: "Error de registro",
+      description: data.message || "No se pudo crear la cuenta",
+      variant: "destructive",
+    });
+  }
+
+  setLoading(false);
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
