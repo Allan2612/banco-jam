@@ -1,34 +1,29 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type React from "react"
+import "./globals.css"
+import { Inter } from "next/font/google"
+import { AuthProvider } from "@/components/providers/auth-provider"
+import { Toaster } from "@/components/ui/sonner"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] })
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "Bank JAM",
-  description: "Bank JAM, Jordan-Mariangel-Allan"
-};
+export const metadata = {
+  title: "JAM Bank - Sistema SINPE",
+  description: "Sistema bancario SINPE de JAM Bank",
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="es">
+      <body className={`${inter.className} bg-gray-900 min-h-screen`}>
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
-  );
+  )
 }

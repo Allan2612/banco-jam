@@ -1,90 +1,105 @@
-"use client";
-import { useState } from "react";
-import Image from "next/image";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function Home() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [userData, setUserData] = useState<any>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-
-    if (res.ok) {
-      setMessage("Usuario creado exitosamente 🎉");
-      // Consulta el usuario recién creado
-      const getRes = await fetch(`/api/users?email=${encodeURIComponent(email)}`);
-      if (getRes.ok) {
-        const data = await getRes.json();
-        setUserData(data.user || data.users || data); // Ajusta según tu endpoint
-      } else {
-        setUserData(null);
-      }
-      setName("");
-      setEmail("");
-      setPassword("");
-    } else {
-      setMessage("Error al crear usuario ❌");
-      setUserData(null);
-    }
-  };
-
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="flex items-center space-x-4">
-        <h1 className="text-3xl font-bold underline text-center">
-          Testear endpoint de usuario
-        </h1>
-        <Image src="/jam.png" alt="Logo JAM" width={50} height={50} />
-      </div>
-
-      <form onSubmit={handleSubmit} className="mt-12 space-y-4">
-        <input
-          type="text"
-          placeholder="Nombre"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="border p-2 rounded w-64"
-          required
-        />
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border p-2 rounded w-64"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 rounded w-64"
-          required
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Crear usuario
-        </button>
-        {message && <p className="mt-2 text-center">{message}</p>}
-      </form>
-
-      {userData && (
-        <div className="mt-8 p-4 border rounded bg-gray-100">
-          <h2 className="font-bold mb-2">Usuario consultado:</h2>
-          <pre>{JSON.stringify(userData, null, 2)}</pre>
+    <div className="min-h-screen bg-gray-900">
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <div className="text-6xl mb-4">🍯</div>
+          <h1 className="text-4xl font-bold text-white mb-4">Bienvenido a JAM Bank</h1>
+          <p className="text-xl text-gray-300 mb-8">Tu sistema bancario SINPE de confianza</p>
+          <div className="space-x-4">
+            <Button asChild size="lg">
+              <Link href="/login">Iniciar Sesión</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+              <Link href="/register">Crear Cuenta</Link>
+            </Button>
+            <Button asChild variant="secondary" size="lg" className="bg-gray-700 text-white hover:bg-gray-600">
+              <Link href="/dashboard">🧪 Acceso de Prueba</Link>
+            </Button>
+          </div>
         </div>
-      )}
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <CreditCard className="h-6 w-6 mr-2 text-blue-600" />
+                Cuentas Bancarias
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>Gestiona todas tus cuentas bancarias desde un solo lugar</CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <ArrowLeftRight className="h-6 w-6 mr-2 text-green-600" />
+                Transferencias
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>Realiza transferencias rápidas y seguras entre cuentas</CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Smartphone className="h-6 w-6 mr-2 text-purple-600" />
+                SINPE Móvil
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>Transfiere dinero usando solo el número de teléfono</CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
-  );
+  )
+}
+
+function CreditCard({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+      />
+    </svg>
+  )
+}
+
+function ArrowLeftRight({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M7 16l-4-4m0 0l4-4m-4 4h18m-6 8l4-4m0 0l-4-4m4 4H3"
+      />
+    </svg>
+  )
+}
+
+function Smartphone({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+      />
+    </svg>
+  )
 }
