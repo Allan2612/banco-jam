@@ -1,7 +1,7 @@
 import { AccountCard } from "./account-card"
 import { Card, CardContent } from "@/components/ui/card"
 import { CreditCard } from "lucide-react"
-import type { Account } from "@/lib/services/accounts.service"
+import { Account } from "@/app/models/models"
 
 interface AccountListProps {
   accounts: Account[]

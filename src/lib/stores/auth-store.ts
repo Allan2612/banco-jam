@@ -1,15 +1,17 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { authService, type User, type LoginCredentials, type RegisterData } from "@/lib/services/auth.service"
+import { authService, type LoginCredentials, type RegisterData } from "@/lib/services/auth.service"
+import { User } from "@/app/models/models"
 
 interface AuthState {
   user: User | null
   loading: boolean
   isAuthenticated: boolean
+  // login: (credentials: LoginCredentials) => Promise<boolean>
+  //register: (data: RegisterData) => Promise<boolean>
+  setUser: (user: User | null) => void
+  getUser: () => User | null
 
-  // Actions
-  login: (credentials: LoginCredentials) => Promise<boolean>
-  register: (data: RegisterData) => Promise<boolean>
   logout: () => void
   initializeAuth: () => Promise<void>
 }
@@ -20,7 +22,8 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       loading: true,
       isAuthenticated: false,
-
+      setUser: (user) => set({ user, isAuthenticated: !!user }),
+      getUser: () => get().user,
       initializeAuth: async () => {
         try {
           set({ loading: true })
@@ -28,9 +31,11 @@ export const useAuthStore = create<AuthState>()(
             const currentUser = await authService.getCurrentUser()
             set({ user: currentUser, isAuthenticated: true })
           } else {
-            // For testing: auto-login with mock user
-            const mockUser = await authService.getCurrentUser()
-            set({ user: mockUser, isAuthenticated: true })
+            // Solo borra el usuario si no existe en localStorage
+            if (!get().user) {
+              set({ user: null, isAuthenticated: false })
+            }
+            // Si ya hay user en localStorage, déjalo
           }
         } catch (error) {
           console.error("Auth initialization error:", error)
@@ -39,8 +44,7 @@ export const useAuthStore = create<AuthState>()(
           set({ loading: false })
         }
       },
-
-      login: async (credentials: LoginCredentials) => {
+      /*login: async (credentials: LoginCredentials) => {
         try {
           set({ loading: true })
           const { user } = await authService.login(credentials)
@@ -52,9 +56,9 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           set({ loading: false })
         }
-      },
+      },*/
 
-      register: async (data: RegisterData) => {
+      /*register: async (data: RegisterData) => {
         try {
           set({ loading: true })
           const { user } = await authService.register(data)
@@ -66,7 +70,7 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           set({ loading: false })
         }
-      },
+      },*/
 
       logout: () => {
         authService.removeToken()

@@ -29,7 +29,7 @@ export default function TransfersPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Mis Cuentas</CardTitle>
+            <CardTitle>Mi Cuenta</CardTitle>
             <CardDescription>Saldos disponibles para transferencia</CardDescription>
           </CardHeader>
           <CardContent>
@@ -38,7 +38,7 @@ export default function TransfersPage() {
                 <div key={account.id} className="p-4 border rounded-lg">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-medium">{account.type}</p>
+                      <p className="font-medium">{account.iban}</p>
                       <p className="text-sm text-gray-600 font-mono">{account.number}</p>
                     </div>
                     <div className="text-right">
@@ -47,7 +47,7 @@ export default function TransfersPage() {
                         currency={account.currency}
                         className="font-bold text-green-600"
                       />
-                      <p className="text-sm text-gray-500">{account.currency}</p>
+                      <p className="text-sm text-gray-500">{account.currency?.name}</p>
                     </div>
                   </div>
                 </div>

@@ -1,72 +1,49 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { accountsService, type Account, type AccountDetail } from "@/lib/services/accounts.service"
+import { useAuthStore } from "@/lib/stores/auth-store"
+import { useEffect, useState } from "react"
+import { getAccountById } from "@/app/services/accountService"
+import type { Account } from "@/app/models/models"
 
 export function useAccounts() {
+  const user = useAuthStore((state) => state.user)
   const [accounts, setAccounts] = useState<Account[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchAccounts()
-  }, [])
+    const fetchAccounts = async () => {
+      if (!user?.accounts || user.accounts.length === 0) {
+        setAccounts([])
+        setLoading(false)
+        return
+      }
 
-  const fetchAccounts = async () => {
-    try {
       setLoading(true)
       setError(null)
-      const data = await accountsService.getAccounts()
-      setAccounts(data)
-    } catch (err) {
-      setError("Error al cargar las cuentas")
-      console.error("Fetch accounts error:", err)
-    } finally {
-      setLoading(false)
+      try {
+        // Trae todas las cuentas asociadas al usuario
+        const promises = user.accounts.map(async (ua) => {
+          // Si ya tienes la cuenta cargada en ua.account, úsala directamente
+          if (ua.account) return ua.account
+          // Si no, haz fetch por id
+          return await getAccountById(ua.accountId)
+        })
+        const results = await Promise.all(promises)
+        setAccounts(results.filter(Boolean))
+      } catch (err) {
+        setError("Error al cargar las cuentas")
+        setAccounts([])
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
-  const refreshAccounts = () => {
     fetchAccounts()
-  }
+  }, [user])
 
   return {
     accounts,
     loading,
     error,
-    refreshAccounts,
-  }
-}
-
-export function useAccountDetail(accountId: string) {
-  const [account, setAccount] = useState<AccountDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (accountId) {
-      fetchAccountDetail()
-    }
-  }, [accountId])
-
-  const fetchAccountDetail = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const data = await accountsService.getAccountDetail(accountId)
-      setAccount(data)
-    } catch (err) {
-      setError("Error al cargar el detalle de la cuenta")
-      console.error("Fetch account detail error:", err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return {
-    account,
-    loading,
-    error,
-    refreshAccount: fetchAccountDetail,
+    refreshAccounts: () => {}, // puedes implementar si necesitas refrescar
   }
 }

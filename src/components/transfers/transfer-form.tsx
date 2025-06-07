@@ -12,7 +12,7 @@ import { CurrencyDisplay } from "@/components/ui/currency-display"
 import { useTransfers } from "@/hooks/use-transfers"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeftRight } from "lucide-react"
-import type { Account } from "@/lib/services/accounts.service"
+import type { Account } from "@/app/models/models"
 
 interface TransferFormProps {
   accounts: Account[]
@@ -97,7 +97,7 @@ export function TransferForm({ accounts, onSuccess }: TransferFormProps) {
               <SelectContent>
                 {accounts.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
-                    {account.type} - {account.number} (
+                    {account.iban} - {account.number} (
                     <CurrencyDisplay amount={account.balance} currency={account.currency} />)
                   </SelectItem>
                 ))}
@@ -114,7 +114,7 @@ export function TransferForm({ accounts, onSuccess }: TransferFormProps) {
               <SelectContent>
                 {accounts.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
-                    {account.type} - {account.number}
+                    {account.iban} - {account.number}
                   </SelectItem>
                 ))}
               </SelectContent>

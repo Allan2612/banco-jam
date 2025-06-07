@@ -1,13 +1,5 @@
 import { apiService } from "./api"
-
-export interface Account {
-  id: string
-  number: string
-  type: string
-  currency: string
-  balance: number
-  status: "active" | "inactive"
-}
+import { Account } from "@/app/models/models"
 
 export interface Transaction {
   id: string
@@ -36,22 +28,6 @@ class AccountsService {
           type: "Cuenta Corriente",
           currency: "CRC",
           balance: 1250000,
-          status: "active",
-        },
-        {
-          id: "2",
-          number: "001-987654-32",
-          type: "Cuenta de Ahorros",
-          currency: "CRC",
-          balance: 850000,
-          status: "active",
-        },
-        {
-          id: "3",
-          number: "001-456789-12",
-          type: "Cuenta Dólares",
-          currency: "USD",
-          balance: 2500,
           status: "active",
         },
       ]

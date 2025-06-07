@@ -9,11 +9,13 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { getUserByEmailAndPassword } from "../services/userService"
+import { useAuthStore } from "@/lib/stores/auth-store"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const setUser = useAuthStore((state) => state.setUser)
 
   const router = useRouter()
   const { toast } = useToast()
@@ -23,8 +25,8 @@ export default function LoginPage() {
     setLoading(true)
 
     const data = await getUserByEmailAndPassword(email, password)
-
     if (data.success) {
+      setUser(data.user)
       toast({
         title: "Inicio de sesión exitoso",
         description: "Bienvenido a JAM Bank",

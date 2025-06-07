@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuthContext } from "@/components/providers/auth-provider"
+import { useAuthStore } from "@/lib/stores/auth-store"
 import { useToast } from "@/hooks/use-toast"
 import { newUser } from "../services/userService"; // Asegúrate de que el import sea correcto
 
@@ -19,8 +19,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
-
-  const { register } = useAuthContext()
+  const setUser = useAuthStore((state) => state.setUser)
+  //const { register } = useAuthContext()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -41,6 +41,7 @@ export default function RegisterPage() {
   const data = await newUser(name, email, password);
 
   if (data.success) {
+    setUser(data.user)
     toast({
       title: "Registro exitoso",
       description: "Bienvenido a JAM Bank",

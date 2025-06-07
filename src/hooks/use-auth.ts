@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { authService, type User, type LoginCredentials, type RegisterData } from "@/lib/services/auth.service"
-
+import { authService } from "@/lib/services/auth.service"
+import { User } from "@/app/models/models"
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -27,7 +27,7 @@ export function useAuth() {
     }
   }
 
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+  /*const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
       const { user } = await authService.login(credentials)
       setUser(user)
@@ -47,7 +47,7 @@ export function useAuth() {
       console.error("Register error:", error)
       return false
     }
-  }
+  }*/
 
   const logout = () => {
     authService.removeToken()
@@ -57,8 +57,8 @@ export function useAuth() {
   return {
     user,
     loading,
-    login,
-    register,
+    //login,
+    //register,
     logout,
     isAuthenticated: !!user,
   }
