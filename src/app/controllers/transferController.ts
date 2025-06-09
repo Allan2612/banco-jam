@@ -69,3 +69,28 @@ export async function createSinpeTransfer(
 export async function listTransfers(): Promise<Transfer[]> {
   return prisma.transfer.findMany();
 }
+
+export async function getUserTransfers(userId: string): Promise<Transfer[]> {
+  // Busca todas las cuentas asociadas al usuario
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { accounts: true },
+  });
+
+  const accountIds = user?.accounts.map(ua => ua.accountId) || [];
+
+  // Busca todas las transferencias donde el usuario es origen o destino
+  return prisma.transfer.findMany({
+    where: {
+      OR: [
+        { fromId: { in: accountIds } },
+        { toId: { in: accountIds } },
+      ],
+    },
+    orderBy: { date: "desc" },
+    include: {
+      from: true,
+      to: true,
+    },
+  });
+}

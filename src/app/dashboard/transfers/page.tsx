@@ -66,7 +66,7 @@ export default function TransfersPage() {
                     <div className="text-right">
                       <CurrencyDisplay
                         amount={account.balance}
-                        currency={account.currency}
+                        currency={account.currency?.symbol || "$"}
                         className="font-bold text-green-600"
                       />
                       <p className="text-sm text-gray-500">

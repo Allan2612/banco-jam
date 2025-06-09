@@ -69,7 +69,7 @@ export function TransferForm({
     // Datos obligatorios para newTransfer
     const status = "completed";
     const transactionId = crypto.randomUUID();
-    const currency = sourceAccount?.currency?.code || "CRC";
+    const currency = sourceAccount?.currency?.symbol || "$";
     const hmacHash = "";
 
     const success = await createTransfer({
@@ -119,7 +119,7 @@ export function TransferForm({
                     {account.iban} - {account.number} (
                     <CurrencyDisplay
                       amount={account.balance}
-                      currency={account.currency}
+                      currency={account.currency?.symbol || "$"}
                     />
                     )
                   </SelectItem>

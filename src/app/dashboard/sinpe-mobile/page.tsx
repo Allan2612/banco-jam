@@ -71,7 +71,7 @@ export default function SinpeMobilePage() {
 
   const status = "completed";
   const transactionId = crypto.randomUUID();
-  const currency = sourceAccount?.currency?.code || "CRC";
+  const currency = sourceAccount?.currency?.symbol || "$";
   const hmacHash = "";
 
   const success = await createSinpeTransfer({
@@ -180,7 +180,7 @@ export default function SinpeMobilePage() {
                           {account.iban} - {account.number} (
                           <CurrencyDisplay
                             amount={account.balance}
-                            currency={account.currency}
+                            currency={account.currency?.symbol || "$"}
                           />
                           )
                         </SelectItem>

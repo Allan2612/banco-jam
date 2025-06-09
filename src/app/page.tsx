@@ -17,9 +17,7 @@ export default function HomePage() {
             <Button asChild variant="outline" size="lg" className="border-gray-600 text-gray-300 hover:bg-gray-800">
               <Link href="/register">Crear Cuenta</Link>
             </Button>
-            <Button asChild variant="secondary" size="lg" className="bg-gray-700 text-white hover:bg-gray-600">
-              <Link href="/dashboard">🧪 Acceso de Prueba</Link>
-            </Button>
+
           </div>
         </div>
 

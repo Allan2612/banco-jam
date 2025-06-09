@@ -40,3 +40,7 @@ export async function getTransfers() {
   const res = await fetch("/api/transfer");
   return res.json();
 }
+export async function getUserTransfers(userId: string) {
+  const res = await fetch(`/api/transactions?userId=${userId}`);
+  return res.json();
+}

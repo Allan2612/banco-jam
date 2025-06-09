@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma";
 import type { User } from "../models/models";
 
-export async function createUser(name: string, email: string, password: string,phone:string): Promise<User> {
+export async function createUser(name: string, email: string, password: string, phone: string): Promise<User> {
   // 1. Crear el usuario
   const user = await prisma.user.create({
     data: { name, email, password }
@@ -12,22 +12,33 @@ export async function createUser(name: string, email: string, password: string,p
     orderBy: { number: "desc" }
   });
 
-  // Si no hay cuentas, empieza en 100000 (o el número que prefieras)
-  const nextNumber = lastAccount ? (parseInt(lastAccount.number, 10) + 1).toString() : "1";
+  // Si no hay cuentas, empieza en 0000000001
+  const nextAccountNumber = lastAccount
+    ? (parseInt(lastAccount.number, 10) + 1).toString().padStart(10, "0")
+    : "0000000001";
 
-  // 3. Crear la cuenta asociada con número e IBAN consecutivos
+  // 3. Generar IBAN realista
+  const countryCode = "CR";
+  const ibanControl = "21"; // Puedes dejarlo fijo para pruebas
+  const bankCode = "0969";
+  const branchCode = "0001";
+  const controlCode = "00"; // Puedes calcularlo o dejarlo fijo para pruebas
+
+  const iban = `${countryCode}${ibanControl}${bankCode}${branchCode}${controlCode}${nextAccountNumber}`;
+
+  // 4. Crear la cuenta asociada con número e IBAN realistas
   const account = await prisma.account.create({
     data: {
-      number: nextNumber,
-      iban: `IBAN${nextNumber}`, // Puedes formatear el IBAN si lo deseas, por ahora igual al número
-      balance: 0,
-      phone: phone, // Agregar el teléfono a la cuenta
+      number: nextAccountNumber,
+      iban: iban,
+      balance: 5000,
+      phone: phone,
       currencyId: "1", // Cambia esto por el ID real de tu moneda
       bankId: "1",     // Cambia esto por el ID real de tu banco
     }
   });
 
-  // 4. Crear la relación en UserAccount
+  // 5. Crear la relación en UserAccount
   await prisma.userAccount.create({
     data: {
       userId: user.id,
@@ -36,16 +47,16 @@ export async function createUser(name: string, email: string, password: string,p
     }
   });
 
-  // 5. Retornar el usuario con la cuenta asociada
+  // 6. Retornar el usuario con la cuenta asociada
   return prisma.user.findUnique({
     where: { id: user.id },
     include: {
       accounts: {
-        take: 1, // Solo el primer UserAccount
+        take: 1,
         include: {
           account: {
             include: {
-              currency: true // Incluye currency en la cuenta
+              currency: true
             }
           }
         }

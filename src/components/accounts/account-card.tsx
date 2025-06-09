@@ -20,7 +20,7 @@ export function AccountCard({ account }: AccountCardProps) {
             <p className="text-sm text-gray-400">Saldo disponible</p>
             <CurrencyDisplay
               amount={account.balance}
-              currency={account.currency}
+              currency={account.currency?.symbol || "$"}
               className="text-2xl font-bold text-green-400"
             />
             <p className="text-sm text-gray-500">{account.currency?.name}</p>
