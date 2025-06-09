@@ -15,6 +15,7 @@ import { newUser } from "../services/userService"; // Asegúrate de que el impor
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
+  const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -36,9 +37,8 @@ export default function RegisterPage() {
     return;
   }
 
-  setLoading(true);
 
-  const data = await newUser(name, email, password);
+  const data = await newUser(name, email, password,phone);
 
   if (data.success) {
     setUser(data.user)
@@ -88,6 +88,17 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Telefono</Label>
+              <Input
+                id="phone"
+                type="number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                placeholder="88888888"
               />
             </div>
             <div>

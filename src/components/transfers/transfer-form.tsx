@@ -1,43 +1,61 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CurrencyDisplay } from "@/components/ui/currency-display"
-import { useTransfers } from "@/hooks/use-transfers"
-import { useToast } from "@/hooks/use-toast"
-import { ArrowLeftRight } from "lucide-react"
-import type { Account } from "@/app/models/models"
+import type React from "react";
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CurrencyDisplay } from "@/components/ui/currency-display";
+import { useTransfers } from "@/hooks/use-transfers";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeftRight } from "lucide-react";
+import type { Account } from "@/app/models/models";
 
 interface TransferFormProps {
-  accounts: Account[]
-  onSuccess?: () => void
+  accounts: Account[];
+  allAccounts: Account[];
+  onTransferSuccess?: (fromId: string, amount: number) => void;
+  onSuccess?: () => void;
 }
 
-export function TransferForm({ accounts, onSuccess }: TransferFormProps) {
-  const [fromAccount, setFromAccount] = useState("")
-  const [toAccount, setToAccount] = useState("")
-  const [amount, setAmount] = useState("")
-  const [description, setDescription] = useState("")
+export function TransferForm({
+  accounts,
+  allAccounts,
+  onTransferSuccess,
+  onSuccess,
+}: TransferFormProps) {
+  const [fromAccount, setFromAccount] = useState("");
+  const [toAccount, setToAccount] = useState("");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
 
-  const { createTransfer, loading } = useTransfers()
-  const { toast } = useToast()
+  const { createTransfer, loading } = useTransfers();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!fromAccount || !toAccount || !amount) {
       toast({
         title: "Error",
         description: "Todos los campos son obligatorios",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (fromAccount === toAccount) {
@@ -45,37 +63,48 @@ export function TransferForm({ accounts, onSuccess }: TransferFormProps) {
         title: "Error",
         description: "No puedes transferir a la misma cuenta",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    const transferAmount = Number.parseFloat(amount)
-    const sourceAccount = accounts.find((acc) => acc.id === fromAccount)
+    const transferAmount = Number.parseFloat(amount);
+    const sourceAccount = accounts.find((acc) => acc.id === fromAccount);
 
     if (sourceAccount && transferAmount > sourceAccount.balance) {
       toast({
         title: "Error",
         description: "Saldo insuficiente",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
+
+    // Datos obligatorios para newTransfer
+    const status = "completed";
+    const transactionId = crypto.randomUUID();
+    const currency = sourceAccount?.currency?.code || "CRC";
+    const hmacHash = "";
 
     const success = await createTransfer({
-      fromAccountId: fromAccount,
-      toAccountId: toAccount,
+      fromId: fromAccount,
+      toId: toAccount,
       amount: transferAmount,
+      status,
+      transactionId,
+      currency,
+      hmacHash,
       description,
-    })
+    });
 
     if (success) {
-      setFromAccount("")
-      setToAccount("")
-      setAmount("")
-      setDescription("")
-      onSuccess?.()
+      setFromAccount("");
+      setToAccount("");
+      setAmount("");
+      setDescription("");
+      onTransferSuccess?.(fromAccount, transferAmount);
+      onSuccess?.();
     }
-  }
+  };
 
   return (
     <Card>
@@ -84,7 +113,9 @@ export function TransferForm({ accounts, onSuccess }: TransferFormProps) {
           <ArrowLeftRight className="h-5 w-5 mr-2" />
           Nueva Transferencia
         </CardTitle>
-        <CardDescription>Transfiere dinero entre tus cuentas bancarias</CardDescription>
+        <CardDescription>
+          Transfiere dinero entre tus cuentas bancarias
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,7 +129,11 @@ export function TransferForm({ accounts, onSuccess }: TransferFormProps) {
                 {accounts.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
                     {account.iban} - {account.number} (
-                    <CurrencyDisplay amount={account.balance} currency={account.currency} />)
+                    <CurrencyDisplay
+                      amount={account.balance}
+                      currency={account.currency}
+                    />
+                    )
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -112,7 +147,7 @@ export function TransferForm({ accounts, onSuccess }: TransferFormProps) {
                 <SelectValue placeholder="Selecciona cuenta de destino" />
               </SelectTrigger>
               <SelectContent>
-                {accounts.map((account) => (
+                {allAccounts.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
                     {account.iban} - {account.number}
                   </SelectItem>
@@ -150,5 +185,5 @@ export function TransferForm({ accounts, onSuccess }: TransferFormProps) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

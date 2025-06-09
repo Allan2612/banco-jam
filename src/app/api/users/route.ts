@@ -1,9 +1,9 @@
 import { createUser, findUserByEmailAndPassword } from "../../controllers/userController";
 
 export async function POST(req: Request) {
-  const { name, email, password } = await req.json();
+  const { name, email, password, phone } = await req.json();
   try {
-    const user = await createUser(name, email, password);
+    const user = await createUser(name, email, password,phone);
     return Response.json({ success: true, user });
   } catch (err: any) {
     return Response.json({ success: false, message: err.message }, { status: 400 });

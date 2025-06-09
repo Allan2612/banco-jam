@@ -40,7 +40,8 @@ model Account {
   subscriptions   Subscription[]
   transfersFrom   Transfer[]     @relation("TransfersFrom")
   transfersTo     Transfer[]     @relation("TransfersTo")
-  sinpeAliases    SinpeAlias[]
+  phone     String?
+ 
 }
 
 model UserAccount {
@@ -92,10 +93,3 @@ model Bank {
   sharedSecret String
   accounts Account[]
 }
-model SinpeAlias {
-  id        String   @id @default(uuid())
-  phone     String   @unique // e.g. número de teléfono
-  accountId String
-  account   Account  @relation(fields: [accountId], references: [id])
-  createdAt DateTime @default(now())
-} 

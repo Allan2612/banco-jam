@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma";
 import type { User } from "../models/models";
 
-export async function createUser(name: string, email: string, password: string): Promise<User> {
+export async function createUser(name: string, email: string, password: string,phone:string): Promise<User> {
   // 1. Crear el usuario
   const user = await prisma.user.create({
     data: { name, email, password }
@@ -21,6 +21,7 @@ export async function createUser(name: string, email: string, password: string):
       number: nextNumber,
       iban: `IBAN${nextNumber}`, // Puedes formatear el IBAN si lo deseas, por ahora igual al número
       balance: 0,
+      phone: phone, // Agregar el teléfono a la cuenta
       currencyId: "1", // Cambia esto por el ID real de tu moneda
       bankId: "1",     // Cambia esto por el ID real de tu banco
     }
@@ -40,8 +41,13 @@ export async function createUser(name: string, email: string, password: string):
     where: { id: user.id },
     include: {
       accounts: {
+        take: 1, // Solo el primer UserAccount
         include: {
-          account: true
+          account: {
+            include: {
+              currency: true // Incluye currency en la cuenta
+            }
+          }
         }
       }
     }
@@ -53,8 +59,13 @@ export async function findUserByEmailAndPassword(email: string, password: string
     where: { email, password },
     include: {
       accounts: {
+        take: 1, // Solo el primer UserAccount
         include: {
-          account: true
+          account: {
+            include: {
+              currency: true // Incluye currency en la cuenta
+            }
+          }
         }
       }
     }

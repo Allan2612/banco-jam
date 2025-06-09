@@ -1,8 +1,30 @@
 "use client"
 
 import { useState } from "react"
-import { transfersService, type TransferRequest, type SinpeTransferRequest } from "@/lib/services/transfers.service"
+import { newAccountTransfer, newSinpeTransfer } from "@/app/services/transferService"
 import { useToast } from "@/hooks/use-toast"
+
+export interface TransferRequest {
+  fromId: string
+  toId: string
+  amount: number
+  status: string
+  transactionId: string
+  currency: string
+  hmacHash: string
+  description: string
+}
+
+export interface SinpeTransferRequest {
+  fromId: string
+  toPhoneNumber: string
+  amount: number
+  status: string
+  transactionId: string
+  currency: string
+  hmacHash: string
+  description: string
+}
 
 export function useTransfers() {
   const [loading, setLoading] = useState(false)
@@ -11,14 +33,30 @@ export function useTransfers() {
   const createTransfer = async (transferData: TransferRequest): Promise<boolean> => {
     try {
       setLoading(true)
-      const response = await transfersService.createTransfer(transferData)
-
-      toast({
-        title: "Transferencia exitosa",
-        description: response.message,
-      })
-
-      return true
+      const response = await newAccountTransfer(
+        transferData.fromId,
+        transferData.toId,
+        transferData.amount,
+        transferData.status,
+        transferData.transactionId,
+        transferData.currency,
+        transferData.hmacHash,
+        transferData.description
+      )
+      if (response.success) {
+        toast({
+          title: "Transferencia exitosa",
+          description: "Fondos transferidos correctamente.",
+        })
+        return true
+      } else {
+        toast({
+          title: "Error en transferencia",
+          description: response.message || "No se pudo procesar la transferencia",
+          variant: "destructive",
+        })
+        return false
+      }
     } catch (error) {
       toast({
         title: "Error en transferencia",
@@ -34,14 +72,30 @@ export function useTransfers() {
   const createSinpeTransfer = async (transferData: SinpeTransferRequest): Promise<boolean> => {
     try {
       setLoading(true)
-      const response = await transfersService.createSinpeTransfer(transferData)
-
-      toast({
-        title: "Transferencia SINPE exitosa",
-        description: `Se ha enviado ₡${transferData.amount.toLocaleString()} al número ${transferData.toPhoneNumber}`,
-      })
-
-      return true
+      const response = await newSinpeTransfer(
+        transferData.fromId,
+        transferData.toPhoneNumber,
+        transferData.amount,
+        transferData.status,
+        transferData.transactionId,
+        transferData.currency,
+        transferData.hmacHash,
+        transferData.description
+      )
+      if (response.success) {
+        toast({
+          title: "Transferencia SINPE exitosa",
+          description: `Se ha enviado ₡${transferData.amount.toLocaleString()} al número ${transferData.toPhoneNumber}`,
+        })
+        return true
+      } else {
+        toast({
+          title: "Error en transferencia SINPE",
+          description: response.message || "No se pudo procesar la transferencia",
+          variant: "destructive",
+        })
+        return false
+      }
     } catch (error) {
       toast({
         title: "Error en transferencia SINPE",

@@ -39,7 +39,7 @@ export function useAccounts() {
 
     fetchAccounts()
   }, [user])
-
+  
   return {
     accounts,
     loading,

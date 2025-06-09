@@ -1,7 +1,8 @@
 import { prisma } from "../lib/prisma";
 import type { Transfer } from "../models/models";
 
-export async function createTransfer(
+// Transferencia tradicional por cuenta (ID)
+export async function createAccountTransfer(
   fromId: string,
   toId: string,
   amount: number,
@@ -11,9 +12,58 @@ export async function createTransfer(
   hmacHash: string,
   description?: string | null
 ): Promise<Transfer> {
-  return prisma.transfer.create({
-    data: { fromId, toId, amount, status, transactionId, currency, hmacHash, description }
+  return await prisma.$transaction(async (tx) => {
+    const fromAccount = await tx.account.findUnique({ where: { id: fromId } });
+    const toAccount = await tx.account.findUnique({ where: { id: toId } });
+
+    if (!fromAccount || !toAccount) {
+      throw new Error("Cuenta origen o destino no encontrada");
+    }
+    if (fromAccount.balance < amount) {
+      throw new Error("Saldo insuficiente en la cuenta de origen");
+    }
+
+    await tx.account.update({
+      where: { id: fromId },
+      data: { balance: { decrement: amount } }
+    });
+    await tx.account.update({
+      where: { id: toId },
+      data: { balance: { increment: amount } }
+    });
+
+    return tx.transfer.create({
+      data: { fromId, toId, amount, status, transactionId, currency, hmacHash, description }
+    });
   });
+}
+
+// Transferencia SINPE por teléfono
+export async function createSinpeTransfer(
+  fromId: string,
+  toPhoneNumber: string,
+  amount: number,
+  status: string,
+  transactionId: string,
+  currency: string,
+  hmacHash: string,
+  description?: string | null
+): Promise<Transfer> {
+  // Buscar cuenta destino por teléfono
+  const destAccount = await prisma.account.findFirst({ where: { phone: toPhoneNumber } });
+  if (!destAccount) throw new Error("Cuenta destino no encontrada para ese teléfono");
+
+  // Reutiliza la lógica de transferencia por cuenta
+  return createAccountTransfer(
+    fromId,
+    destAccount.id,
+    amount,
+    status,
+    transactionId,
+    currency,
+    hmacHash,
+    description
+  );
 }
 
 export async function listTransfers(): Promise<Transfer[]> {
