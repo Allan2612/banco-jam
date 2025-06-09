@@ -71,3 +71,21 @@ export async function findUserByEmailAndPassword(email: string, password: string
     }
   }) as unknown as User;
 }
+export async function findUserById(id: string): Promise<User | null> {
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: {
+      accounts: {
+        take: 1,
+        include: {
+          account: {
+            include: {
+              currency: true
+            }
+          }
+        }
+      }
+    }
+  }) as unknown as User;
+  return user;
+}

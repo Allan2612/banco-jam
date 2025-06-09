@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { newAccountTransfer, newSinpeTransfer } from "@/app/services/transferService"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 export interface TransferRequest {
   fromId: string
@@ -28,7 +28,6 @@ export interface SinpeTransferRequest {
 
 export function useTransfers() {
   const [loading, setLoading] = useState(false)
-  const { toast } = useToast()
 
   const createTransfer = async (transferData: TransferRequest): Promise<boolean> => {
     try {
@@ -44,25 +43,14 @@ export function useTransfers() {
         transferData.description
       )
       if (response.success) {
-        toast({
-          title: "Transferencia exitosa",
-          description: "Fondos transferidos correctamente.",
-        })
+        toast.success("Transferencia exitosa: Fondos transferidos correctamente.")
         return true
       } else {
-        toast({
-          title: "Error en transferencia",
-          description: response.message || "No se pudo procesar la transferencia",
-          variant: "destructive",
-        })
+        toast.error(response.message || "No se pudo procesar la transferencia")
         return false
       }
     } catch (error) {
-      toast({
-        title: "Error en transferencia",
-        description: "No se pudo procesar la transferencia",
-        variant: "destructive",
-      })
+      toast.error("No se pudo procesar la transferencia")
       return false
     } finally {
       setLoading(false)
@@ -83,25 +71,16 @@ export function useTransfers() {
         transferData.description
       )
       if (response.success) {
-        toast({
-          title: "Transferencia SINPE exitosa",
-          description: `Se ha enviado ₡${transferData.amount.toLocaleString()} al número ${transferData.toPhoneNumber}`,
-        })
+        toast.success(
+          `Transferencia SINPE exitosa: Se ha enviado ₡${transferData.amount.toLocaleString()} al número ${transferData.toPhoneNumber}`
+        )
         return true
       } else {
-        toast({
-          title: "Error en transferencia SINPE",
-          description: response.message || "No se pudo procesar la transferencia",
-          variant: "destructive",
-        })
+        toast.error(response.message || "No se pudo procesar la transferencia SINPE")
         return false
       }
     } catch (error) {
-      toast({
-        title: "Error en transferencia SINPE",
-        description: "No se pudo procesar la transferencia",
-        variant: "destructive",
-      })
+      toast.error("No se pudo procesar la transferencia SINPE")
       return false
     } finally {
       setLoading(false)

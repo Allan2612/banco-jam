@@ -1,16 +1,45 @@
 "use client"
 
-import { useAuthStore } from "@/lib/stores/auth-store"
+import { useEffect } from "react"
+import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CreditCard, ArrowLeftRight, History, Smartphone } from "lucide-react"
 
 export default function DashboardPage() {
-  const user = useAuthStore((state) => state.user)
+  const { user, loading, fetchUser } = useAuth()
+
+  useEffect(() => {
+    // Solo llama a fetchUser si user existe pero no tiene cuentas cargadas
+    if (user && user.accounts && user.accounts.length > 0 && user.accounts[0].account?.currency) {
+      // Ya está todo cargado, no hagas nada
+      return
+    }
+    // Si no hay usuario o no tiene cuentas cargadas, haz fetch
+    if (user) {
+      fetchUser()
+    }
+  }, [user]) // Solo depende de user
+
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-white">Cargando usuario...</span>
+      </div>
+    )
+  }
+
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-white">Cargando usuario...</span>
+      </div>
+    )
+  }
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Bienvenido, {user?.name}</h1>
+        <h1 className="text-3xl font-bold text-white">Bienvenido, {user.name}</h1>
         <p className="text-gray-300">Gestiona tus finanzas desde tu panel de control</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

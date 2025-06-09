@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { CurrencyDisplay } from "@/components/ui/currency-display";
 import { useTransfers } from "@/hooks/use-transfers";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ArrowLeftRight } from "lucide-react";
 import type { Account } from "@/app/models/models";
 
@@ -44,26 +44,17 @@ export function TransferForm({
   const [description, setDescription] = useState("");
 
   const { createTransfer, loading } = useTransfers();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!fromAccount || !toAccount || !amount) {
-      toast({
-        title: "Error",
-        description: "Todos los campos son obligatorios",
-        variant: "destructive",
-      });
+      toast.error("Todos los campos son obligatorios");
       return;
     }
 
     if (fromAccount === toAccount) {
-      toast({
-        title: "Error",
-        description: "No puedes transferir a la misma cuenta",
-        variant: "destructive",
-      });
+      toast.error("No puedes transferir a la misma cuenta");
       return;
     }
 
@@ -71,11 +62,7 @@ export function TransferForm({
     const sourceAccount = accounts.find((acc) => acc.id === fromAccount);
 
     if (sourceAccount && transferAmount > sourceAccount.balance) {
-      toast({
-        title: "Error",
-        description: "Saldo insuficiente",
-        variant: "destructive",
-      });
+      toast.error("Saldo insuficiente");
       return;
     }
 
@@ -101,6 +88,7 @@ export function TransferForm({
       setToAccount("");
       setAmount("");
       setDescription("");
+      toast.success("Transferencia realizada correctamente");
       onTransferSuccess?.(fromAccount, transferAmount);
       onSuccess?.();
     }

@@ -1,3 +1,4 @@
+import { User } from "@/app/models/models";
 export async function newUser(name: string, email: string, password: string,phone: string) {
   const res = await fetch("/api/users", {
     method: "POST",
@@ -11,4 +12,12 @@ export async function newUser(name: string, email: string, password: string,phon
 export async function getUserByEmailAndPassword(email: string, password: string) {
   const res = await fetch(`/api/users?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
   return res.json();
+}
+
+export async function fetchUserById(userId: string): Promise<User | null> {
+  console.log("Fetching user by ID:", userId)
+  const res = await fetch(`/api/users/user/${userId}`)
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.user || null
 }

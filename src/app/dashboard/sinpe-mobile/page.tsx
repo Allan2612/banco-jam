@@ -18,9 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useTransfers } from "@/hooks/use-transfers";
+import { useAuthStore } from "@/app/stores/auth-store";
 import { CurrencyDisplay } from "@/components/ui/currency-display";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Smartphone, Phone } from "lucide-react";
@@ -28,13 +29,13 @@ import { Smartphone, Phone } from "lucide-react";
 export default function SinpeMobilePage() {
   const { accounts, loading: accountsLoading } = useAccounts();
   const { createSinpeTransfer, loading: transferLoading } = useTransfers();
+  const fetchUser = useAuthStore((state) => state.fetchUser);
 
   const [showTransferForm, setShowTransferForm] = useState(false);
   const [fromAccount, setFromAccount] = useState("");
   const [toPhoneNumber, setToPhoneNumber] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [transferDescription, setTransferDescription] = useState("");
-  const { toast } = useToast();
 
   if (accountsLoading) {
     return (
@@ -45,58 +46,57 @@ export default function SinpeMobilePage() {
   }
 
   // Solo cuentas con teléfono registrado
-  const accountsWithPhone = (accounts ?? []).filter(acc => !!acc.phone);
+  const accountsWithPhone = (accounts ?? []).filter((acc) => !!acc.phone);
 
   const handleSinpeTransfer = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!fromAccount || !toPhoneNumber || !transferAmount) {
-      toast({
-        title: "Error",
-        description: "Todos los campos son obligatorios",
-        variant: "destructive",
-      });
-      return;
-    }
+  if (!fromAccount || !toPhoneNumber || !transferAmount) {
+    toast.error("Todos los campos son obligatorios");
+    return;
+  }
 
-    const amount = Number.parseFloat(transferAmount);
-    const sourceAccount = accounts?.find((acc) => acc.id === fromAccount);
+  const amount = Number.parseFloat(transferAmount);
+  if (isNaN(amount) || amount <= 0) {
+    toast.error("El monto debe ser mayor a cero");
+    return;
+  }
 
-    if (sourceAccount && amount > sourceAccount.balance) {
-      toast({
-        title: "Error",
-        description: "Saldo insuficiente",
-        variant: "destructive",
-      });
-      return;
-    }
+  const sourceAccount = accounts?.find((acc) => acc.id === fromAccount);
 
-    const status = "completed";
-    const transactionId = crypto.randomUUID();
-    const currency = sourceAccount?.currency?.code || "CRC";
-    const hmacHash = "";
+  if (sourceAccount && amount > sourceAccount.balance) {
+    toast.error("Saldo insuficiente");
+    return;
+  }
 
-    const success = await createSinpeTransfer({
-      fromId: fromAccount,
-      toPhoneNumber,
-      amount,
-      status,
-      transactionId,
-      currency,
-      hmacHash,
-      description: transferDescription,
-    });
+  const status = "completed";
+  const transactionId = crypto.randomUUID();
+  const currency = sourceAccount?.currency?.code || "CRC";
+  const hmacHash = "";
 
-    if (success) {
-      setFromAccount("");
-      setToPhoneNumber("");
-      setTransferAmount("");
-      setTransferDescription("");
-      setShowTransferForm(false);
+  const success = await createSinpeTransfer({
+    fromId: fromAccount,
+    toPhoneNumber,
+    amount,
+    status,
+    transactionId,
+    currency,
+    hmacHash,
+    description: transferDescription,
+  });
 
-
-    }
-  };
+  if (success) {
+    setFromAccount("");
+    setToPhoneNumber("");
+    setTransferAmount("");
+    setTransferDescription("");
+    setShowTransferForm(false);
+    await fetchUser();
+    toast.success("Transferencia realizada correctamente");
+  } else {
+    toast.error("No se pudo realizar la transferencia. Intenta de nuevo.");
+  }
+};
 
   return (
     <div>
@@ -198,7 +198,6 @@ export default function SinpeMobilePage() {
                     value={toPhoneNumber}
                     onChange={(e) => setToPhoneNumber(e.target.value)}
                     placeholder="88881234"
-                   
                   />
                 </div>
 

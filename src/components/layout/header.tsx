@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { useAuthStore } from "@/lib/stores/auth-store"
+import { useAuthStore } from "@/app/stores/auth-store"
 import { LogOut } from "lucide-react"
 
 export function Header() {

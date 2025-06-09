@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -9,9 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuthStore } from "@/lib/stores/auth-store"
-import { useToast } from "@/hooks/use-toast"
-import { newUser } from "../services/userService"; // Asegúrate de que el import sea correcto
+import { toast } from "sonner"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
@@ -19,44 +16,23 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const setUser = useAuthStore((state) => state.setUser)
-  //const { register } = useAuthContext()
   const router = useRouter()
-  const { toast } = useToast()
+  const { register, loading } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (password !== confirmPassword) {
-    toast({
-      title: "Error",
-      description: "Las contraseñas no coinciden",
-      variant: "destructive",
-    });
-    return;
+    e.preventDefault()
+    if (password !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden")
+      return
+    }
+    const success = await register(name, email, password, phone)
+    if (success) {
+      toast.success("Registro exitoso. Bienvenido a JAM Bank")
+      router.push("/dashboard")
+    } else {
+      toast.error("No se pudo crear la cuenta")
+    }
   }
-
-
-  const data = await newUser(name, email, password,phone);
-
-  if (data.success) {
-    setUser(data.user)
-    toast({
-      title: "Registro exitoso",
-      description: "Bienvenido a JAM Bank",
-    });
-    router.push("/dashboard");
-  } else {
-    toast({
-      title: "Error de registro",
-      description: data.message || "No se pudo crear la cuenta",
-      variant: "destructive",
-    });
-  }
-
-  setLoading(false);
-};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
