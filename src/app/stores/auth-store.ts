@@ -7,7 +7,7 @@ interface AuthState {
   loading: boolean
   error: string | null
   login: (email: string, password: string) => Promise<boolean>
-  register: (name: string, email: string, password: string, phone: string) => Promise<boolean>
+  register: (name: string, email: string, password: string, phone: string, currency: string) => Promise<boolean>
   logout: () => void
   setUser: (user: User | null) => void
   fetchUser: () => Promise<void>
@@ -39,6 +39,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email, password) => {
     set({ loading: true, error: null })
     try {
+
       const user = await getUserByEmailAndPassword(email, password)
       setUserToStorage(user)
       set({ user, loading: false })
@@ -49,15 +50,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  register: async (name, email, password, phone) => {
+  register: async (name, email, password, phone, currency) => {
     set({ loading: true, error: null })
     try {
-      const user = await newUser(name, email, password, phone)
+
+      const user = await newUser(name, email, password, phone, currency)
       setUserToStorage(user)
       set({ user, loading: false })
       return true
     } catch (e: any) {
       set({ error: e.message || "No se pudo registrar", loading: false })
+
       return false
     }
   },
