@@ -87,6 +87,25 @@ export async function createAccountTransfer(
   });
 }
 
+
+async function buscarSinpeOtrosBancos(
+  fromId: string,
+  toPhoneNumber: string,
+  amount: number,
+  status: string,
+  transactionId: string,
+  currency: string,
+  hmacHash: string,
+  description?: string | null
+): Promise<Transfer> {
+  // TODO: implementar lógica para SINPE a otros bancos
+  // - Armar payload
+  // - Enviar request
+  // - Procesar respuesta
+  // - Crear registro de Transfer (o manejos de error)
+  throw new Error("SINPE a otros bancos aún no implementado o no existe");
+}
+
 export async function createSinpeTransfer(
   fromId: string,
   toPhoneNumber: string,
@@ -103,8 +122,29 @@ export async function createSinpeTransfer(
     include: { currency: true },
   });
   if (!destAccount) {
-    throw new Error("Cuenta destino no encontrada para ese teléfono");
+     return buscarSinpeOtrosBancos(
+      fromId,
+      toPhoneNumber,
+      amount,
+      status,
+      transactionId,
+      currency,
+      hmacHash,
+      description
+    );
   }
+
+const hmacData = `${fromId}|${toPhoneNumber}|${amount}|${description || ""}`;
+const expectedHmac = generarHmac(hmacData);
+
+console.log("SINPE HMAC Debug:");
+console.log(" raw string    =", JSON.stringify(hmacData));
+console.log(" expectedHmac  =", expectedHmac);
+console.log(" client hmac   =", hmacHash);
+
+if (hmacHash !== expectedHmac) {
+  throw new Error("HMAC inválido para transferencia SINPE");
+}
 
   // Delegar en createAccountTransfer para reutilizar la lógica
   return createAccountTransfer(
@@ -241,7 +281,7 @@ export async function transferToOtherBankByIban(
 
   // Obtén el banco destino por el código en el IBAN
   const bankCode = toIban.substring(4, 8);
-  const toBank = await prisma.bank.findUnique({ where: { code: bankCode } });
+  //const toBank = await prisma.bank.findUnique({ where: { code: bankCode } });
 
   // Arma el número de cuenta destino (sin IBAN)
   const toAccountNumber = toIban.substring(8); // Asume que después del código de banco viene el número
@@ -277,3 +317,4 @@ export async function transferToOtherBankByIban(
   // Simula la respuesta (puedes lanzar error o retornar un mock)
   throw new Error("Transferencia a otros bancos aún no implementada");
 }
+

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { generarHmac } from "@/lib/hmac";
 import {
   Card,
   CardContent,
@@ -72,7 +73,8 @@ export default function SinpeMobilePage() {
   const status = "completed";
   const transactionId = crypto.randomUUID();
   const currency = sourceAccount?.currency?.symbol || "$";
-  const hmacHash = "";
+ const hmacData = `${fromAccount}|${toPhoneNumber}|${amount}|${transferDescription || ""}`;
+  const hmacHash = generarHmac(hmacData);
 
   const success = await createSinpeTransfer({
     fromId: fromAccount,
