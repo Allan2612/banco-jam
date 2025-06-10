@@ -8,6 +8,7 @@ export async function newAccountTransfer(
   hmacHash: string,
   description?: string | null
 ) {
+
   const res = await fetch("/api/transfer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -62,6 +63,7 @@ export async function newAccountTransferByIban(
   hmacHash: string,
   description?: string | null
 ) {
+
   const res = await fetch("/api/transfer/by-iban", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

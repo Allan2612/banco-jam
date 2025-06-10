@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import type { Transfer } from "../models/models";
+import type { Transfer,User,Bank  } from "../models/models";
 import { generarHmac } from "@/lib/hmac";
 // Transferencia tradicional por cuenta (ID)
 export async function createAccountTransfer(
@@ -45,7 +45,6 @@ export async function createAccountTransfer(
   });
 }
 
-// Transferencia SINPE por teléfono
 export async function createSinpeTransfer(
   fromId: string,
   toPhoneNumber: string,
@@ -162,7 +161,7 @@ export async function createAccountTransferByIban(
   }
 }
 
-// Placeholder para transferencias a otros bancos (lógica a desarrollar)
+
 export async function transferToOtherBankByIban(
   fromId: string,
   toIban: string,
@@ -173,19 +172,57 @@ export async function transferToOtherBankByIban(
   hmacHash: string,
   description?: string | null
 ): Promise<Transfer> {
-  // Por ahora solo lanza un error o retorna un mock
+  // Obtén la cuenta de origen con su usuario y banco
+  const fromAccount = await prisma.account.findUnique({
+    where: { id: fromId },
+    include: {
+      bank: true,
+      users: {
+        include: { user: true },
+      },
+    },
+  });
+  if (!fromAccount) throw new Error("Cuenta origen no encontrada");
+
+  // Obtén el usuario titular (primer usuario con rol "owner" o el primero si solo hay uno)
+  const ownerUserAccount = fromAccount.users.find((ua) => ua.role === "owner") || fromAccount.users[0];
+  if (!ownerUserAccount || !ownerUserAccount.user) throw new Error("Usuario titular no encontrado");
+
+  // Obtén el banco destino por el código en el IBAN
+  const bankCode = toIban.substring(4, 8);
+  const toBank = await prisma.bank.findUnique({ where: { code: bankCode } });
+
+  // Arma el número de cuenta destino (sin IBAN)
+  const toAccountNumber = toIban.substring(8); // Asume que después del código de banco viene el número
+
+  // Arma el JSON estándar
+  const jsonEstandar = {
+    version: "1.0",
+    timestamp: new Date().toISOString(),
+    transaction_id: transactionId,
+    sender: {
+      account_number: fromAccount.number,
+      bank_code: fromAccount.bank.code,
+      name: ownerUserAccount.user.name,
+    },
+    receiver: {
+      account_number: toAccountNumber,
+      bank_code: bankCode,
+      name: "", 
+    },
+    amount: {
+      value: amount,
+      currency: currency,
+    },
+    description: description || "",
+    hmac_md5: generarHmac(
+      `${transactionId}|${fromAccount.number}|${fromAccount.bank.code}|${toAccountNumber}|${bankCode}|${amount}|${currency}|${description || ""}`
+    ),
+  };
+
+  // Aquí deberías hacer el fetch/post al endpoint del otro banco usando jsonEstandar
+  console.log("JSON a enviar a otro banco:", jsonEstandar);
+
+  // Simula la respuesta (puedes lanzar error o retornar un mock)
   throw new Error("Transferencia a otros bancos aún no implementada");
-  // O puedes retornar un objeto simulado si prefieres:
-  // return {
-  //   id: "mock-id",
-  //   fromId,
-  //   toId: "externo",
-  //   amount,
-  //   status,
-  //   transactionId,
-  //   currency,
-  //   hmacHash,
-  //   description,
-  //   date: new Date(),
-  // };
 }
