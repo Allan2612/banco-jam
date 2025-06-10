@@ -14,8 +14,14 @@ export async function createAccountTransfer(
   description?: string | null
 ): Promise<Transfer> {
   return await prisma.$transaction(async (tx) => {
-    const fromAccount = await tx.account.findUnique({ where: { id: fromId } });
-    const toAccount = await tx.account.findUnique({ where: { id: toId } });
+   const fromAccount = await tx.account.findUnique({
+      where: { id: fromId },
+      include: { currency: true }
+    });
+    const toAccount = await tx.account.findUnique({
+      where: { id: toId },
+      include: { currency: true }
+    });
 
     if (!fromAccount || !toAccount) {
       throw new Error("Cuenta origen o destino no encontrada");
@@ -29,7 +35,6 @@ function getExchangeRate(
   from: "CRC" | "USD" | "EUR",
   to: "CRC" | "USD" | "EUR"
 ): number {
-  // Solo permite conversiones válidas
   if (from === to) return 1;
   return exchangeRates[from][to as keyof typeof exchangeRates[typeof from]];
 }
@@ -37,31 +42,29 @@ function getExchangeRate(
 let creditedAmount = amount;
 const validCurrencies = ["CRC", "USD", "EUR"] as const;
 type CurrencyCode = typeof validCurrencies[number];
+    const fromCur = fromAccount.currency.code as CurrencyCode;
+    const toCur = toAccount.currency.code as CurrencyCode;
 
-if (
-  fromAccount.currencyId !== toAccount.currencyId &&
-  validCurrencies.includes(fromAccount.currencyId as CurrencyCode) &&
-  validCurrencies.includes(toAccount.currencyId as CurrencyCode)
-) {
-  const fromCur = fromAccount.currencyId as CurrencyCode;
-  const toCur = toAccount.currencyId as CurrencyCode;
-  creditedAmount = amount * getExchangeRate(fromCur, toCur);
-}
-
-
+    if (
+      fromCur !== toCur &&
+      validCurrencies.includes(fromCur) &&
+      validCurrencies.includes(toCur)
+    ) {
+      creditedAmount = amount * getExchangeRate(fromCur, toCur);
+    }
 
     await tx.account.update({
-  where: { id: fromId },
-  data: { balance: { decrement: amount } }
-});
-await tx.account.update({
-  where: { id: toId },
-  data: { balance: { increment: creditedAmount } } // Usa creditedAmount aquí
-});
+      where: { id: fromId },
+      data: { balance: { decrement: amount } }
+    });
+    await tx.account.update({
+      where: { id: toId },
+      data: { balance: { increment: creditedAmount } }
+    });
 
-return tx.transfer.create({
-  data: { fromId, toId, amount, status, transactionId, currency, hmacHash, description }
-});
+    return tx.transfer.create({
+      data: { fromId, toId, amount, status, transactionId, currency, hmacHash, description }
+    });
   });
 }
 
