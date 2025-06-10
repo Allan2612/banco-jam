@@ -41,7 +41,6 @@ model Account {
   transfersFrom   Transfer[]     @relation("TransfersFrom")
   transfersTo     Transfer[]     @relation("TransfersTo")
   phone     String?
- 
 }
 
 model UserAccount {
