@@ -159,7 +159,9 @@ export default function HistoryPage() {
                   <div className="text-right space-y-1">
                     <CurrencyDisplay
                       amount={isOutgoing ? -transaction.amount : transaction.amount}
+                      
                       currency={transaction.currency || "$"}
+                      
                       className={`font-medium ${isOutgoing ? "text-red-400" : "text-green-400"}`}
                       showSign
                     />

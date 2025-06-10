@@ -15,19 +15,14 @@ export function useAccountById(accountId: string | undefined) {
     }
     setLoading(true);
     getAccountById(accountId)
-      .then((res) => {
-        if (res.success) {
-          setAccount(res.account);
-          setError(null);
-        } else {
-          setAccount(null);
-          setError(res.message || "No se pudo cargar la cuenta");
-        }
+      .then((account) => {
+        setAccount(account);
+        setError(null);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((e) => {
         setAccount(null);
-        setError("Error al cargar la cuenta");
+        setError(e.message || "Error al cargar la cuenta");
         setLoading(false);
       });
   }, [accountId]);

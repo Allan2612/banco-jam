@@ -32,7 +32,7 @@ export function useTransfers() {
   const createTransfer = async (transferData: TransferRequest): Promise<boolean> => {
     try {
       setLoading(true)
-      const response = await newAccountTransfer(
+      await newAccountTransfer(
         transferData.fromId,
         transferData.toId,
         transferData.amount,
@@ -42,15 +42,10 @@ export function useTransfers() {
         transferData.hmacHash,
         transferData.description
       )
-      if (response.success) {
-        toast.success("Transferencia exitosa: Fondos transferidos correctamente.")
-        return true
-      } else {
-        toast.error(response.message || "No se pudo procesar la transferencia")
-        return false
-      }
-    } catch (error) {
-      toast.error("No se pudo procesar la transferencia")
+      toast.success("Transferencia exitosa: Fondos transferidos correctamente.")
+      return true
+    } catch (error: any) {
+      toast.error(error.message || "No se pudo procesar la transferencia")
       return false
     } finally {
       setLoading(false)
@@ -60,7 +55,7 @@ export function useTransfers() {
   const createSinpeTransfer = async (transferData: SinpeTransferRequest): Promise<boolean> => {
     try {
       setLoading(true)
-      const response = await newSinpeTransfer(
+      await newSinpeTransfer(
         transferData.fromId,
         transferData.toPhoneNumber,
         transferData.amount,
@@ -70,17 +65,12 @@ export function useTransfers() {
         transferData.hmacHash,
         transferData.description
       )
-      if (response.success) {
-        toast.success(
-          `Transferencia SINPE exitosa: Se ha enviado ₡${transferData.amount.toLocaleString()} al número ${transferData.toPhoneNumber}`
-        )
-        return true
-      } else {
-        toast.error(response.message || "No se pudo procesar la transferencia SINPE")
-        return false
-      }
-    } catch (error) {
-      toast.error("No se pudo procesar la transferencia SINPE")
+       toast.success(
+        `Transferencia SINPE exitosa: Se ha enviado ₡${transferData.amount.toLocaleString()} al número ${transferData.toPhoneNumber}`
+      )
+      return true
+    } catch (error: any) {
+      toast.error(error.message || "No se pudo procesar la transferencia SINPE")
       return false
     } finally {
       setLoading(false)
