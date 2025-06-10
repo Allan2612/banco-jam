@@ -11,6 +11,7 @@ interface AuthState {
   logout: () => void
   setUser: (user: User | null) => void
   fetchUser: () => Promise<void>
+  refreshUserOnce: () => Promise<void>
 }
 
 function getUserFromStorage(): User | null {
@@ -38,17 +39,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email, password) => {
     set({ loading: true, error: null })
     try {
-      const data = await getUserByEmailAndPassword(email, password)
-      if (data.success) {
-        setUserToStorage(data.user)
-        set({ user: data.user, loading: false })
-        return true
-      } else {
-        set({ error: data.message || "Credenciales incorrectas", loading: false })
-        return false
-      }
-    } catch (e) {
-      set({ error: "Error de red", loading: false })
+      const user = await getUserByEmailAndPassword(email, password)
+      setUserToStorage(user)
+      set({ user, loading: false })
+      return true
+    } catch (e: any) {
+      set({ error: e.message || "Credenciales incorrectas", loading: false })
       return false
     }
   },
@@ -56,17 +52,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (name, email, password, phone) => {
     set({ loading: true, error: null })
     try {
-      const data = await newUser(name, email, password, phone)
-      if (data.success) {
-        setUserToStorage(data.user)
-        set({ user: data.user, loading: false })
-        return true
-      } else {
-        set({ error: data.message || "No se pudo registrar", loading: false })
-        return false
-      }
-    } catch (e) {
-      set({ error: "Error de red", loading: false })
+      const user = await newUser(name, email, password, phone)
+      setUserToStorage(user)
+      set({ user, loading: false })
+      return true
+    } catch (e: any) {
+      set({ error: e.message || "No se pudo registrar", loading: false })
       return false
     }
   },
@@ -79,24 +70,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     setUserToStorage(user)
     set({ user })
   },
-  
-fetchUser: async () => {
-  const user = get().user;
-  if (!user) return;
-  set({ loading: true });
-  const freshUser = await fetchUserById(user.id);
-  setUserToStorage(freshUser);
-  set({ user: freshUser, loading: false });
-},
 
-refreshUserOnce: async () => {
-  if (hasRefreshedUser) return;
-  hasRefreshedUser = true;
-  const user = get().user;
-  if (!user) return;
-  set({ loading: true });
-  const freshUser = await fetchUserById(user.id);
-  setUserToStorage(freshUser);
-  set({ user: freshUser, loading: false });
-},
+  fetchUser: async () => {
+    const user = get().user;
+    if (!user) return;
+    set({ loading: true });
+    const freshUser = await fetchUserById(user.id);
+    setUserToStorage(freshUser);
+    set({ user: freshUser, loading: false });
+  },
+
+  refreshUserOnce: async () => {
+    if (hasRefreshedUser) return;
+    hasRefreshedUser = true;
+    const user = get().user;
+    if (!user) return;
+    set({ loading: true });
+    const freshUser = await fetchUserById(user.id);
+    setUserToStorage(freshUser);
+    set({ user: freshUser, loading: false });
+  },
 }))
