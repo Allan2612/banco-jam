@@ -4,10 +4,14 @@ export async function newUserAccount(userId: string, accountId: string, role: st
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, accountId, role }),
   });
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.userAccount;
+  throw new Error(data.message || "Error creando relación usuario-cuenta");
 }
 
 export async function getUserAccounts() {
   const res = await fetch("/api/useraccount");
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.userAccounts;
+  throw new Error(data.message || "Error obteniendo relaciones usuario-cuenta");
 }

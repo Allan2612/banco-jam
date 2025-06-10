@@ -9,12 +9,12 @@ export function useAllAccounts() {
 
   useEffect(() => {
     getAllAccounts()
-      .then((res) => {
-        setAccounts(res.accounts || []);
+      .then((accounts) => {
+        setAccounts(accounts);
         setLoading(false);
       })
-      .catch(() => {
-        setError("Error al cargar las cuentas");
+      .catch((e) => {
+        setError(e.message || "Error al cargar las cuentas");
         setLoading(false);
       });
   }, []);
