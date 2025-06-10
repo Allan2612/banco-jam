@@ -1,9 +1,15 @@
+import { Currency } from "lucide-react";
 import { createUser, findUserByEmailAndPassword } from "../../controllers/userController";
 
 export async function POST(req: Request) {
-  const { name, email, password, phone } = await req.json();
+  const body = await req.json();
+  console.log("BODY RECIBIDO:", body); // <-- Agrega esto
+  const { name, email, password, phone, currency } = body;
+  if (!name || !email || !password || !phone || !currency) {
+    return Response.json({ success: false, message: "Faltan parámetros" }, { status: 400 });
+  }
   try {
-    const user = await createUser(name, email, password,phone);
+    const user = await createUser(name, email, password, phone, currency);
     return Response.json({ success: true, user });
   } catch (err: any) {
     return Response.json({ success: false, message: err.message }, { status: 400 });
