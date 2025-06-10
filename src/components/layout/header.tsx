@@ -1,9 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { useAuthStore } from "@/lib/stores/auth-store"
+import { useAuthStore } from "@/app/stores/auth-store"
 import { LogOut } from "lucide-react"
-
+import Link from "next/link"
 export function Header() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
@@ -25,7 +25,8 @@ export function Header() {
               <p className="text-sm font-medium text-white">{user.name}</p>
               <p className="text-xs text-gray-300">{user.email}</p>
             </div>
-            <Button
+            
+            <Link href="/"><Button
               variant="outline"
               size="sm"
               onClick={logout}
@@ -33,7 +34,7 @@ export function Header() {
             >
               <LogOut className="h-4 w-4 mr-2" />
               Salir
-            </Button>
+            </Button></Link>
           </div>
         )}
       </div>

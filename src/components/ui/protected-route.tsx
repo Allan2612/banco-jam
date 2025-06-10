@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useAuthStore } from "@/lib/stores/auth-store"
+import { useAuthStore } from "@/app/stores/auth-store"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {

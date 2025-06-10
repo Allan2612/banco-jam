@@ -11,3 +11,7 @@ export async function getAccountById(id: string) {
   const res = await fetch(`/api/account?id=${encodeURIComponent(id)}`);
   return res.json();
 }
+export async function getAllAccounts() {
+  const res = await fetch("/api/account");
+  return res.json();
+}

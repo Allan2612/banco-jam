@@ -30,7 +30,8 @@ export interface Account {
   subscriptions?: Subscription[]; // relación
   transfersFrom?: Transfer[]; // relación
   transfersTo?: Transfer[]; // relación
-  sinpeAliases?: SinpeAlias[]; // relación
+  phone?: string | null; // <-- Agrega este campo
+
 }
 
 export interface UserAccount {
@@ -81,12 +82,4 @@ export interface Bank {
   ip: string;
   sharedSecret: string;
   accounts?: Account[]; // relación
-}
-
-export interface SinpeAlias {
-  id: string;
-  phone: string;
-  accountId: string;
-  account?: Account; // relación
-  createdAt: Date | string;
 }

@@ -7,38 +7,24 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
-import { getUserByEmailAndPassword } from "../services/userService"
+import { toast } from "sonner"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-
   const router = useRouter()
-  const { toast } = useToast()
+  const { login, loading } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-
-    const data = await getUserByEmailAndPassword(email, password)
-
-    if (data.success) {
-      toast({
-        title: "Inicio de sesión exitoso",
-        description: "Bienvenido a JAM Bank",
-      })
+    const success = await login(email, password)
+    if (success) {
+      toast.success("Inicio de sesión exitoso. Bienvenido a JAM Bank")
       router.push("/dashboard")
     } else {
-      toast({
-        title: "Error de autenticación",
-        description: data.message || "Email o contraseña incorrectos",
-        variant: "destructive",
-      })
+      toast.error("Email o contraseña incorrectos")
     }
-
-    setLoading(false)
   }
 
   return (

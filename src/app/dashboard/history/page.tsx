@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -8,28 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CurrencyDisplay } from "@/components/ui/currency-display"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { History, Search, Filter } from "lucide-react"
-
-interface Transaction {
-  id: string
-  date: string
-  description: string
-  amount: number
-  type: "transfer" | "sinpe" | "deposit" | "withdrawal"
-  status: "completed" | "pending" | "failed"
-  fromAccount?: string
-  toAccount?: string
-  currency: string
-}
+import { useUserTransfers } from "@/hooks/use-Transactions"
+import type { Transfer } from "@/app/models/models"
+import { useAuth } from "@/hooks/use-auth"
 
 const StatusBadge = ({ status }: { status: string }) => {
   let color = "gray"
-  if (status === "completed") {
-    color = "green"
-  } else if (status === "pending") {
-    color = "yellow"
-  } else if (status === "failed") {
-    color = "red"
-  }
+  if (status === "completed") color = "green"
+  else if (status === "pending") color = "yellow"
+  else if (status === "failed") color = "red"
 
   return (
     <Badge
@@ -42,109 +29,33 @@ const StatusBadge = ({ status }: { status: string }) => {
 }
 
 export default function HistoryPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(true)
+  const { transfers, loading, error } = useUserTransfers()
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [typeFilter, setTypeFilter] = useState("all")
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const token = localStorage.getItem("token")
-        const response = await fetch("/api/transactions", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const data = await response.json()
-        setTransactions(data.transactions || [])
-      } catch (error) {
-        console.error("Error fetching transactions:", error)
-        const mockTransactions = [
-          {
-            id: "1",
-            date: "2024-01-15T14:30:00Z",
-            description: "Transferencia a Juan Pérez",
-            amount: -50000,
-            type: "transfer" as const,
-            status: "completed" as const,
-            fromAccount: "001-234567-89",
-            toAccount: "001-987654-32",
-            currency: "CRC",
-          },
-          {
-            id: "2",
-            date: "2024-01-14T09:15:00Z",
-            description: "SINPE Móvil a 8888-9999",
-            amount: -25000,
-            type: "sinpe" as const,
-            status: "completed" as const,
-            fromAccount: "001-234567-89",
-            currency: "CRC",
-          },
-          {
-            id: "3",
-            date: "2024-01-13T16:45:00Z",
-            description: "Depósito de salario",
-            amount: 800000,
-            type: "deposit" as const,
-            status: "completed" as const,
-            toAccount: "001-234567-89",
-            currency: "CRC",
-          },
-          {
-            id: "4",
-            date: "2024-01-12T11:20:00Z",
-            description: "Transferencia pendiente",
-            amount: -75000,
-            type: "transfer" as const,
-            status: "pending" as const,
-            fromAccount: "001-234567-89",
-            toAccount: "001-987654-32",
-            currency: "CRC",
-          },
-          {
-            id: "5",
-            date: "2024-01-11T08:30:00Z",
-            description: "SINPE Móvil fallido",
-            amount: -30000,
-            type: "sinpe" as const,
-            status: "failed" as const,
-            fromAccount: "001-234567-89",
-            currency: "CRC",
-          },
-        ]
-        setTransactions(mockTransactions)
-      } finally {
-        setLoading(false)
-      }
-    }
+  // Obtener los IDs de las cuentas del usuario logueado
+  const userAccountIds = user?.accounts?.map(acc => acc.accountId) || []
 
-    fetchTransactions()
-  }, [])
-
-  useEffect(() => {
-    let filtered = transactions
+  // Filtro y búsqueda
+  const filteredTransactions = useMemo(() => {
+    let filtered: Transfer[] = transfers
 
     if (searchTerm) {
       filtered = filtered.filter(
-        (transaction) =>
-          transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.fromAccount?.includes(searchTerm) ||
-          transaction.toAccount?.includes(searchTerm),
+        (t) =>
+          t.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          t.fromId?.includes(searchTerm) ||
+          t.toId?.includes(searchTerm)
       )
     }
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter((transaction) => transaction.status === statusFilter)
+      filtered = filtered.filter((t) => t.status === statusFilter)
     }
 
-    if (typeFilter !== "all") {
-      filtered = filtered.filter((transaction) => transaction.type === typeFilter)
-    }
-
-    setFilteredTransactions(filtered)
-  }, [transactions, searchTerm, statusFilter, typeFilter])
+    return filtered
+  }, [transfers, searchTerm, statusFilter])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -157,25 +68,18 @@ export default function HistoryPage() {
     })
   }
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case "transfer":
-        return "Transferencia"
-      case "sinpe":
-        return "SINPE Móvil"
-      case "deposit":
-        return "Depósito"
-      case "withdrawal":
-        return "Retiro"
-      default:
-        return type
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-500">{error}</p>
       </div>
     )
   }
@@ -195,7 +99,7 @@ export default function HistoryPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -220,20 +124,6 @@ export default function HistoryPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los tipos</SelectItem>
-                  <SelectItem value="transfer">Transferencia</SelectItem>
-                  <SelectItem value="sinpe">SINPE Móvil</SelectItem>
-                  <SelectItem value="deposit">Depósito</SelectItem>
-                  <SelectItem value="withdrawal">Retiro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -250,33 +140,34 @@ export default function HistoryPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between p-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <p className="font-medium text-white">{transaction.description}</p>
-                    <Badge variant="outline" className="border-gray-600 text-gray-300">
-                      {getTypeLabel(transaction.type)}
-                    </Badge>
+            {filteredTransactions.map((transaction) => {
+              // Si la cuenta logueada es la de origen, es un envío (rojo y negativo)
+              const isOutgoing = userAccountIds.includes(transaction.fromId)
+              return (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between p-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <p className="font-medium text-white">{transaction.description || "Sin descripción"}</p>
+                    </div>
+                    <p className="text-sm text-gray-400">{formatDate(transaction.date as string)}</p>
+                    <p className="text-xs text-gray-500">Desde: {transaction.from?.iban}</p>
+                    <p className="text-xs text-gray-500">Hacia: {transaction.to?.iban}</p>
                   </div>
-                  <p className="text-sm text-gray-400">{formatDate(transaction.date)}</p>
-                  {transaction.fromAccount && <p className="text-xs text-gray-500">Desde: {transaction.fromAccount}</p>}
-                  {transaction.toAccount && <p className="text-xs text-gray-500">Hacia: {transaction.toAccount}</p>}
+                  <div className="text-right space-y-1">
+                    <CurrencyDisplay
+                      amount={isOutgoing ? -transaction.amount : transaction.amount}
+                      currency={transaction.currency || "$"}
+                      className={`font-medium ${isOutgoing ? "text-red-400" : "text-green-400"}`}
+                      showSign
+                    />
+                    <StatusBadge status={transaction.status} />
+                  </div>
                 </div>
-                <div className="text-right space-y-1">
-                  <CurrencyDisplay
-                    amount={transaction.amount}
-                    currency={transaction.currency}
-                    className={`font-medium ${transaction.amount > 0 ? "text-green-400" : "text-red-400"}`}
-                    showSign
-                  />
-                  <StatusBadge status={transaction.status} />
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {filteredTransactions.length === 0 && (

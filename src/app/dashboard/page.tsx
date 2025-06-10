@@ -1,108 +1,49 @@
 "use client"
 
-import { useAuthStore } from "@/lib/stores/auth-store"
+import { useEffect } from "react"
+import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CreditCard, ArrowLeftRight, History, Smartphone } from "lucide-react"
 
 export default function DashboardPage() {
-  const user = useAuthStore((state) => state.user)
+  const { user, loading, fetchUser } = useAuth()
+
+  useEffect(() => {
+    // Solo llama a fetchUser si user existe pero no tiene cuentas cargadas
+    if (user && user.accounts && user.accounts.length > 0 && user.accounts[0].account?.currency) {
+      // Ya está todo cargado, no hagas nada
+      return
+    }
+    // Si no hay usuario o no tiene cuentas cargadas, haz fetch
+    if (user) {
+      fetchUser()
+    }
+  }, [user]) // Solo depende de user
+
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-white">Cargando usuario...</span>
+      </div>
+    )
+  }
+
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-white">Cargando usuario...</span>
+      </div>
+    )
+  }
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Bienvenido, {user?.name}</h1>
+        <h1 className="text-3xl font-bold text-white">Bienvenido, {user.name}</h1>
         <p className="text-gray-300">Gestiona tus finanzas desde tu panel de control</p>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total en Cuentas</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₡2,450,000</div>
-            <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transferencias del Mes</CardTitle>
-            <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">+12% desde el mes pasado</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SINPE Móvil</CardTitle>
-            <Smartphone className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Transferencias este mes</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Última Actividad</CardTitle>
-            <History className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Hoy</div>
-            <p className="text-xs text-muted-foreground">Transferencia completada</p>
-          </CardContent>
-        </Card>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Actividad Reciente</CardTitle>
-            <CardDescription>Tus últimas transacciones</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Transferencia a Juan Pérez</p>
-                  <p className="text-sm text-gray-600">Hoy, 2:30 PM</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-red-600">-₡50,000</p>
-                  <p className="text-sm text-green-600">Completado</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Depósito de salario</p>
-                  <p className="text-sm text-gray-600">Ayer, 9:00 AM</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-green-600">+₡800,000</p>
-                  <p className="text-sm text-green-600">Completado</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">SINPE Móvil a 8888-9999</p>
-                  <p className="text-sm text-gray-600">2 días atrás</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-red-600">-₡25,000</p>
-                  <p className="text-sm text-green-600">Completado</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
+        <Card className="bg-gray-800 text-white">
           <CardHeader>
             <CardTitle>Accesos Rápidos</CardTitle>
             <CardDescription>Funciones más utilizadas</CardDescription>

@@ -1,3 +1,4 @@
+
 interface CurrencyDisplayProps {
   amount: number
   currency: string
@@ -6,7 +7,7 @@ interface CurrencyDisplayProps {
 }
 
 export function CurrencyDisplay({ amount, currency, className, showSign = false }: CurrencyDisplayProps) {
-  const symbol = currency === "USD" ? "$" : "₡"
+  const symbol = currency || "$"
   const sign = showSign && amount !== 0 ? (amount > 0 ? "+" : "-") : ""
   const displayAmount = Math.abs(amount)
 
