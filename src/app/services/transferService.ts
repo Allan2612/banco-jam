@@ -1,4 +1,3 @@
-// Transferencia tradicional por cuenta (ID)
 export async function newAccountTransfer(
   fromId: string,
   toId: string,
@@ -14,10 +13,11 @@ export async function newAccountTransfer(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fromId, toId, amount, status, transactionId, currency, hmacHash, description }),
   });
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.transfer;
+  throw new Error(data.message || "Error en la transferencia");
 }
 
-// Transferencia SINPE por teléfono
 export async function newSinpeTransfer(
   fromId: string,
   toPhoneNumber: string,
@@ -33,14 +33,21 @@ export async function newSinpeTransfer(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fromId, toPhoneNumber, amount, status, transactionId, currency, hmacHash, description }),
   });
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.transfer;
+  throw new Error(data.message || "Error en la transferencia SINPE");
 }
 
 export async function getTransfers() {
   const res = await fetch("/api/transfer");
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.transfers;
+  throw new Error(data.message || "Error obteniendo transferencias");
 }
+
 export async function getUserTransfers(userId: string) {
   const res = await fetch(`/api/transactions?userId=${userId}`);
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.transactions;
+  throw new Error(data.message || "Error obteniendo transferencias del usuario");
 }

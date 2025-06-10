@@ -13,17 +13,17 @@ export async function POST(req: Request) {
       hmacHash,
       description
     );
-    return Response.json({ success: true, transfer });
+    return Response.json({ status: "ACK", transfer });
   } catch (err: any) {
-    return Response.json({ success: false, message: err.message }, { status: 400 });
+    return Response.json({ status: "NACK", message: err.message }, { status: 400 });
   }
 }
 
 export async function GET() {
   try {
     const transfers = await listTransfers();
-    return Response.json({ success: true, transfers });
+    return Response.json({ status: "ACK", transfers });
   } catch (err: any) {
-    return Response.json({ success: false, message: err.message }, { status: 400 });
+    return Response.json({ status: "NACK", message: err.message }, { status: 400 });
   }
 }

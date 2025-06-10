@@ -17,11 +17,11 @@ export function useUserTransfers() {
     }
     setLoading(true);
     getUserTransfers(user.id)
-      .then((res) => {
-        setTransfers(res.transactions || []);
+      .then((transactions) => {
+        setTransfers(transactions);
         setError(null);
       })
-      .catch(() => setError("Error al cargar transferencias"))
+      .catch((e) => setError(e.message || "Error al cargar transferencias"))
       .finally(() => setLoading(false));
   }, [user?.id]);
 

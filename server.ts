@@ -1,21 +1,27 @@
 import express from "express";
+import next from "next";
 import https from "https";
 import fs from "fs";
+import path from "path";
 
-const app = express();
+const dev = process.env.NODE_ENV !== "production";
+const app = next({ dev });
+const handle = app.getRequestHandler();
 
-// Tu configuración de rutas aquí
-app.get("/", (req, res) => {
-  res.send("¡Servidor HTTPS funcionando!");
-});
-
-// Lee los certificados
-const options = {
-  key: fs.readFileSync("certs/localhost-key.pem"),
-  cert: fs.readFileSync("certs/localhost.pem"),
+const httpsOptions = {
+  key: fs.readFileSync(path.join(__dirname, "certs/localhost-key.pem")),
+  cert: fs.readFileSync(path.join(__dirname, "certs/localhost.pem")),
 };
 
-// Inicia el servidor HTTPS en un puerto alto para evitar permisos de admin
-https.createServer(options, app).listen(3443, () => {
-  console.log("Servidor HTTPS corriendo en https://localhost:3443");
+app.prepare().then(() => {
+  const server = express();
+
+  // Maneja todas las rutas con Next.js
+  server.use((req, res) => {
+  return handle(req, res);
+});
+
+  https.createServer(httpsOptions, server).listen(3443, () => {
+    console.log("Servidor Next.js + API corriendo en https://localhost:3443");
+  });
 });
