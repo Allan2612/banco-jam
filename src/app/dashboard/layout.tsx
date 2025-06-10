@@ -1,7 +1,7 @@
 import type React from "react"
 import { Header } from "@/components/layout/header"
 import { Sidebar } from "@/components/layout/sidebar"
-import { ProtectedRoute } from "@/components/ui/protected-route"
+import { ProtectedRoute } from "@/components/ui/ProtectedRoute"
 
 export default function DashboardLayout({
   children,
