@@ -1,8 +1,25 @@
+// controllers/transferController.ts
+
 import { prisma } from "../lib/prisma";
 import type { Transfer } from "../models/models";
 import { exchangeRates } from "@/utils/exchangeRates";
 
-// Transferencia tradicional por cuenta (ID)
+//
+// Constantes y tipos
+//
+type CurrencyCode = "CRC" | "USD" | "EUR";
+
+//
+// Helper para obtener la tasa de cambio entre dos divisas
+//
+function getExchangeRate(from: CurrencyCode, to: CurrencyCode): number {
+  if (from === to) return 1;
+  return (exchangeRates[from] as Record<CurrencyCode, number>)[to];
+}
+
+//
+// 1) Transferencia tradicional por cuenta (ID)
+//
 export async function createAccountTransfer(
   fromId: string,
   toId: string,
@@ -13,14 +30,15 @@ export async function createAccountTransfer(
   hmacHash: string,
   description?: string | null
 ): Promise<Transfer> {
-  return await prisma.$transaction(async (tx) => {
-   const fromAccount = await tx.account.findUnique({
+  return prisma.$transaction(async (tx) => {
+    // Cargar ambas cuentas con su moneda
+    const fromAccount = await tx.account.findUnique({
       where: { id: fromId },
-      include: { currency: true }
+      include: { currency: true },
     });
     const toAccount = await tx.account.findUnique({
       where: { id: toId },
-      include: { currency: true }
+      include: { currency: true },
     });
 
     if (!fromAccount || !toAccount) {
@@ -29,46 +47,42 @@ export async function createAccountTransfer(
     if (fromAccount.balance < amount) {
       throw new Error("Saldo insuficiente en la cuenta de origen");
     }
-    
 
-function getExchangeRate(
-  from: "CRC" | "USD" | "EUR",
-  to: "CRC" | "USD" | "EUR"
-): number {
-  if (from === to) return 1;
-  return exchangeRates[from][to as keyof typeof exchangeRates[typeof from]];
-}
-
-let creditedAmount = amount;
-const validCurrencies = ["CRC", "USD", "EUR"] as const;
-type CurrencyCode = typeof validCurrencies[number];
+    // Cálculo de conversión si las divisas difieren
     const fromCur = fromAccount.currency.code as CurrencyCode;
     const toCur = toAccount.currency.code as CurrencyCode;
+    const rate = getExchangeRate(fromCur, toCur);
+    const creditedAmount = amount * rate;
 
-    if (
-      fromCur !== toCur &&
-      validCurrencies.includes(fromCur) &&
-      validCurrencies.includes(toCur)
-    ) {
-      creditedAmount = amount * getExchangeRate(fromCur, toCur);
-    }
-
+    // Actualizar balances
     await tx.account.update({
       where: { id: fromId },
-      data: { balance: { decrement: amount } }
+      data: { balance: { decrement: amount } },
     });
     await tx.account.update({
       where: { id: toId },
-      data: { balance: { increment: creditedAmount } }
+      data: { balance: { increment: creditedAmount } },
     });
 
+    // Registrar la transferencia
     return tx.transfer.create({
-      data: { fromId, toId, amount, status, transactionId, currency, hmacHash, description }
+      data: {
+        fromId,
+        toId,
+        amount,
+        status,
+        transactionId,
+        currency,
+        hmacHash,
+        description,
+      },
     });
   });
 }
 
-// Transferencia SINPE por teléfono
+//
+// 2) Transferencia SINPE por teléfono
+//
 export async function createSinpeTransfer(
   fromId: string,
   toPhoneNumber: string,
@@ -79,11 +93,16 @@ export async function createSinpeTransfer(
   hmacHash: string,
   description?: string | null
 ): Promise<Transfer> {
-  // Buscar cuenta destino por teléfono
-  const destAccount = await prisma.account.findFirst({ where: { phone: toPhoneNumber } });
-  if (!destAccount) throw new Error("Cuenta destino no encontrada para ese teléfono");
+  // Buscar la cuenta destino por teléfono e incluir su moneda
+  const destAccount = await prisma.account.findFirst({
+    where: { phone: toPhoneNumber },
+    include: { currency: true },
+  });
+  if (!destAccount) {
+    throw new Error("Cuenta destino no encontrada para ese teléfono");
+  }
 
-  // Reutiliza la lógica de transferencia por cuenta
+  // Delegar en createAccountTransfer para reutilizar la lógica
   return createAccountTransfer(
     fromId,
     destAccount.id,
@@ -96,20 +115,25 @@ export async function createSinpeTransfer(
   );
 }
 
+//
+// 3) Listar todas las transferencias
+//
 export async function listTransfers(): Promise<Transfer[]> {
   return prisma.transfer.findMany();
 }
 
+//
+// 4) Obtener historial de un usuario (por sus cuentas)
+//
 export async function getUserTransfers(userId: string): Promise<Transfer[]> {
-  // Busca todas las cuentas asociadas al usuario
+  // Cargar IDs de todas las cuentas del usuario
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { accounts: true },
   });
+  const accountIds = user?.accounts.map((ua) => ua.accountId) || [];
 
-  const accountIds = user?.accounts.map(ua => ua.accountId) || [];
-
-  // Busca todas las transferencias donde el usuario es origen o destino
+  // Buscar transferencias donde participa como origen o destino
   return prisma.transfer.findMany({
     where: {
       OR: [
