@@ -1,10 +1,11 @@
 import { User } from "@/app/models/models";
 
-export async function newUser(name: string, email: string, password: string, phone: string): Promise<User> {
+
+export async function newUser(name: string, email: string, password: string, phone: string, currency: string): Promise<User> {
   const res = await fetch("/api/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, phone }),
+    body: JSON.stringify({ name, email, password, phone, currency }),
   });
   const data = await res.json();
   if (data.status === "ACK") return data.user;
