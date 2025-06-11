@@ -30,6 +30,7 @@ CREATE TABLE `Account` (
     `currencyId` VARCHAR(191) NOT NULL,
     `bankId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `phone` VARCHAR(191) NULL,
 
     UNIQUE INDEX `Account_number_key`(`number`),
     UNIQUE INDEX `Account_iban_key`(`iban`),
@@ -96,17 +97,6 @@ CREATE TABLE `Bank` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateTable
-CREATE TABLE `SinpeAlias` (
-    `id` VARCHAR(191) NOT NULL,
-    `phone` VARCHAR(191) NOT NULL,
-    `accountId` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    UNIQUE INDEX `SinpeAlias_phone_key`(`phone`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
 -- AddForeignKey
 ALTER TABLE `Account` ADD CONSTRAINT `Account_currencyId_fkey` FOREIGN KEY (`currencyId`) REFERENCES `Currency`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -130,6 +120,3 @@ ALTER TABLE `Transfer` ADD CONSTRAINT `Transfer_toId_fkey` FOREIGN KEY (`toId`) 
 
 -- AddForeignKey
 ALTER TABLE `Log` ADD CONSTRAINT `Log_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `SinpeAlias` ADD CONSTRAINT `SinpeAlias_accountId_fkey` FOREIGN KEY (`accountId`) REFERENCES `Account`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

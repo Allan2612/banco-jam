@@ -1,23 +1,27 @@
 import { User } from "@/app/models/models";
-export async function newUser(name: string, email: string, password: string,phone: string) {
+
+
+export async function newUser(name: string, email: string, password: string, phone: string, currency: string): Promise<User> {
   const res = await fetch("/api/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password,phone }),
+    body: JSON.stringify({ name, email, password, phone, currency }),
   });
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.user;
+  throw new Error(data.message || "Error creando usuario");
 }
 
-// Consulta por email y password (NO recomendado para producción)
-export async function getUserByEmailAndPassword(email: string, password: string) {
+export async function getUserByEmailAndPassword(email: string, password: string): Promise<User> {
   const res = await fetch(`/api/users?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.user;
+  throw new Error(data.message || "Usuario o contraseña incorrectos");
 }
 
 export async function fetchUserById(userId: string): Promise<User | null> {
-  console.log("Fetching user by ID:", userId)
-  const res = await fetch(`/api/users/user/${userId}`)
-  if (!res.ok) return null
-  const data = await res.json()
-  return data.user || null
+  const res = await fetch(`/api/users/user/${userId}`);
+  const data = await res.json();
+  if (data.status === "ACK") return data.user;
+  return null;
 }

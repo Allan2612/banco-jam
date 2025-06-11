@@ -8,12 +8,12 @@ export async function GET(req: NextRequest) {
     const userId = searchParams.get("userId");
 
     if (!userId) {
-      return Response.json({ success: false, message: "Falta userId" }, { status: 400 });
+      return Response.json({ status: "NACK", message: "Falta userId" }, { status: 400 });
     }
 
     const transfers = await getUserTransfers(userId);
-    return Response.json({ success: true, transactions: transfers });
+    return Response.json({ status: "ACK", transactions: transfers });
   } catch (err: any) {
-    return Response.json({ success: false, message: err.message }, { status: 500 });
+    return Response.json({ status: "NACK", message: err.message }, { status: 500 });
   }
 }

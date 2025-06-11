@@ -4,10 +4,14 @@ export async function newCurrency(code: string, name: string, symbol: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, name, symbol }),
   });
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.currency;
+  throw new Error(data.message || "Error creando moneda");
 }
 
 export async function getCurrencies() {
   const res = await fetch("/api/currency");
-  return res.json();
+  const data = await res.json();
+  if (data.status === "ACK") return data.currencies;
+  throw new Error(data.message || "Error obteniendo monedas");
 }

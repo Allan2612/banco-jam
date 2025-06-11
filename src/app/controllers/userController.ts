@@ -1,11 +1,16 @@
 import { prisma } from "../lib/prisma";
 import type { User } from "../models/models";
 
-export async function createUser(name: string, email: string, password: string, phone: string): Promise<User> {
+export async function createUser(name: string, email: string, password: string, phone: string, currency: string): Promise<User> {
   // 1. Crear el usuario
   const user = await prisma.user.create({
     data: { name, email, password }
   });
+
+    const foundCurrency = await prisma.currency.findUnique({
+    where: { code: currency }
+  });
+  if (!foundCurrency) throw new Error("Divisa no encontrada");
 
   // 2. Obtener el último número de cuenta
   const lastAccount = await prisma.account.findFirst({
@@ -33,7 +38,7 @@ export async function createUser(name: string, email: string, password: string, 
       iban: iban,
       balance: 5000,
       phone: phone,
-      currencyId: "1", // Cambia esto por el ID real de tu moneda
+      currencyId: foundCurrency.id, // Cambia esto por el ID real de tu moneda
       bankId: "1",     // Cambia esto por el ID real de tu banco
     }
   });
