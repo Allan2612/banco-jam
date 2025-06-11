@@ -4,8 +4,18 @@ export async function POST(req: Request) {
   const body = await req.json();
   console.log("BODY RECIBIDO:", body); // <-- Agrega esto
   const { name, email, password, phone, currency } = body;
-  if (!name || !email || !password || !phone || !currency) {
-    return Response.json({ success: false, message: "Faltan parámetros" }, { status: 400 });
+  const missingParams = [];
+  if (!name) missingParams.push("name");
+  if (!email) missingParams.push("email");
+  if (!password) missingParams.push("password");
+  if (!phone) missingParams.push("phone");
+  if (!currency) missingParams.push("currency");
+
+  if (missingParams.length > 0) {
+    return Response.json(
+      { success: false, message: `Faltan parámetros: ${missingParams.join(", ")}` },
+      { status: 400 }
+    );
   }
   try {
     const user = await createUser(name, email, password, phone, currency);

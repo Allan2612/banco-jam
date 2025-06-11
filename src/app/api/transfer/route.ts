@@ -1,7 +1,11 @@
 import { createAccountTransfer, listTransfers } from "../../controllers/transferController";
 
 export async function POST(req: Request) {
-  const { fromId, toId, amount, status, transactionId, currency, hmacHash, description } = await req.json();
+  const body = await req.json();
+  console.log("Transferencia recibida:", body);
+
+  const { fromId, toId, amount, status, transactionId, currency, hmacHash, description } = body;
+
   try {
     const transfer = await createAccountTransfer(
       fromId,
@@ -13,6 +17,7 @@ export async function POST(req: Request) {
       hmacHash,
       description
     );
+    
     return Response.json({ status: "ACK", transfer });
   } catch (err: any) {
     return Response.json({ status: "NACK", message: err.message }, { status: 400 });

@@ -25,7 +25,6 @@ export interface SinpeTransferRequest {
   hmacHash: string
   description: string
 }
-
 export function useTransfers() {
   const [loading, setLoading] = useState(false)
 
