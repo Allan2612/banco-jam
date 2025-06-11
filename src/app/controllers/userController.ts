@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
 import type { User } from "../models/models";
-
+import { generarHmac } from "@/lib/hmac";
 export async function createUser(name: string, email: string, password: string, phone: string, currency: string): Promise<User> {
   // 1. Crear el usuario
   const user = await prisma.user.create({
@@ -71,6 +71,13 @@ export async function createUser(name: string, email: string, password: string, 
 }
 
 export async function findUserByEmailAndPassword(email: string, password: string): Promise<User | null> {
+   const hmac = generarHmac(
+    "CR2101110001571903865386" + 
+    "2025-06-11T15:00:00.000Z" + 
+    "123e4567-e89b-12d3-a456-426614174000" + 
+    "100.00"
+  );
+  console.log("HMAC generado:", hmac);
   return prisma.user.findFirst({
     where: { email, password },
     include: {

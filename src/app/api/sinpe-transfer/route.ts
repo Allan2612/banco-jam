@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { generarHmac } from "@/lib/hmac";
-import { createAccountTransfer } from "@/app/controllers/transferController";
 
 const OUR_BANK_CODE = "969";
-const currencyIdMap: Record<string, string> = {
-  CRC: "2",
-  USD: "1",
-  EUR: "3",
-};
+
 export async function POST(req: NextRequest) {
   let payload: any;
   try {
@@ -51,9 +46,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: "NACK", message: "HMAC inválido." }, { status: 401 });
   }
 
-  // Determinar currencyId usando el mapa
-  const currencyId = currencyIdMap[amount.currency] || amount.currency;
-
   // Procesar transferencia: acreditar cuenta destino y registrar transferencia
   try {
     // Buscar cuenta destino por IBAN
@@ -65,33 +57,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: "NACK", message: "Cuenta destino no encontrada." }, { status: 404 });
     }
 
-    // Buscar o crear cuenta origen (banco externo)
-    let fromAccount = await prisma.account.findUnique({
-      where: { iban: sender.account_number },
-    });
-
-    if (!fromAccount) {
-      fromAccount = await prisma.account.create({
-        data: {
-          iban: sender.account_number,
-          number: sender.account_number,
-          balance: 0,
-          currencyId: currencyId, // Usa la misma moneda que la cuenta destino
-          bankId: "1", // Asigna el código del banco
-        },
+    // Registrar transferencia y acreditar monto
+    const transfer = await prisma.$transaction(async (tx) => {
+      await tx.account.update({
+        where: { id: destAccount.id },
+        data: { balance: { increment: amount.value } },
       });
-    }
-
-    const transfer = await createAccountTransfer(
-      fromAccount.id,
-      destAccount.id,
-      amount.value,
-      "completed",
-      transaction_id,
-      currencyId,
-      "VERIFICADO",
-      description || ""
-    );
+      return tx.transfer.create({
+        data: {
+          fromId: destAccount.id, // Externo, puedes usar null si el modelo lo permite
+          toId: destAccount.id,
+          amount: amount.value,
+          status: "completed",
+          transactionId: transaction_id,
+          currency: amount.currency,
+          hmacHash: hmac_md5,
+          description: description || "",
+        },
+        include: { to: true },
+      });
+    });
 
     return NextResponse.json({ status: "ACK", transfer }, { status: 200 });
   } catch (err: any) {
