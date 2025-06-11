@@ -37,7 +37,23 @@ export default function SinpeMobilePage() {
   const [toPhoneNumber, setToPhoneNumber] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [transferDescription, setTransferDescription] = useState("");
+const logFailedTransfer = async (reason: string) => {
+  const transactionId = crypto.randomUUID();
+  const sourceAccount = accounts?.find((acc) => acc.id === fromAccount);
+  const currency = sourceAccount?.currency?.symbol || "$";
+  const amount = Number.parseFloat(transferAmount) || 0;
 
+  await createSinpeTransfer({
+    fromId: fromAccount,
+    toPhoneNumber,
+    amount,
+    status: "failed",
+    transactionId,
+    currency,
+    hmacHash: "", 
+    description: reason,
+  });
+};
   if (accountsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -59,7 +75,9 @@ export default function SinpeMobilePage() {
 
   const amount = Number.parseFloat(transferAmount);
   if (isNaN(amount) || amount <= 0) {
+    
     toast.error("El monto debe ser mayor a cero");
+     await logFailedTransfer("Monto inválido");
     return;
   }
 
@@ -67,6 +85,7 @@ export default function SinpeMobilePage() {
 
   if (sourceAccount && amount > sourceAccount.balance) {
     toast.error("Saldo insuficiente");
+    await logFailedTransfer("Saldo insuficiente");
     return;
   }
 

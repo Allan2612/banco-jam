@@ -78,6 +78,18 @@ async function buscarSinpeOtrosBancos(
   // - Enviar request
   // - Procesar respuesta
   // - Crear registro de Transfer (o manejos de error)
+   await prisma.transfer.create({
+    data: {
+      fromId,
+      toId: "", // No hay cuenta destino
+      amount,
+      status: "failed",
+      transactionId,
+      currency,
+      hmacHash,
+      description: description || "El número no está asociado a ninguna cuenta SINPE de este banco",
+    },
+  });
   throw new Error("SINPE a otros bancos aún no implementado o no existe");
 }
 
@@ -174,7 +186,18 @@ export async function createAccountTransferByIban(
     const hmacData = `${fromId}|${toIban}|${amount}|${description || ""}`;
     const expectedHmac = generarHmac(hmacData);
     if (hmacHash !== expectedHmac) {
-      
+      await prisma.transfer.create({
+        data: {
+          fromId,
+          toId: destAccount.id,
+          amount,
+          status: "failed",
+          transactionId,
+          currency,
+          hmacHash,
+          description,
+        },
+      });
       throw new Error("HMAC inválido");
     }
     console.log("hash -> " + expectedHmac + " <--")

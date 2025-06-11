@@ -50,6 +50,24 @@ export function TransferForm({
   const { createTransfer, loading } = useTransfers();
   const { createTransferByIban, loading: loadingIban } = useTransferByIban(); // usa el hook
 
+  const logFailedTransfer = async (reason: string) => {
+    const transactionId = crypto.randomUUID();
+    const transferAmount = Number.parseFloat(amount) || 0;
+    const sourceAccount = accounts.find((acc) => acc.id === fromAccount);
+    const currency = sourceAccount?.currency?.symbol || "$";
+
+    await createTransfer({
+      fromId: fromAccount,
+      toId: toAccount,
+      amount: transferAmount,
+      status: "failed",
+      transactionId,
+      currency,
+      hmacHash: "",
+      description: reason,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -70,6 +88,7 @@ export function TransferForm({
 
     if (destinoModo === "select" && fromAccount === toAccount) {
       toast.error("No puedes transferir a la misma cuenta");
+      await logFailedTransfer("No puedes transferir a la misma cuenta");
       return;
     }
 
@@ -77,6 +96,7 @@ export function TransferForm({
     const sourceAccount = accounts.find((acc) => acc.id === fromAccount);
 
     if (sourceAccount && transferAmount > sourceAccount.balance) {
+      await logFailedTransfer("Saldo insuficiente");
       toast.error("Saldo insuficiente");
       return;
     }
@@ -135,6 +155,10 @@ export function TransferForm({
       onTransferSuccess?.(fromAccount, transferAmount);
       onSuccess?.();
     }
+    else {
+  await logFailedTransfer("Error al realizar la transferencia");
+  toast.error("No se pudo realizar la transferencia. Intenta de nuevo.");
+}
   };
 
   return (
