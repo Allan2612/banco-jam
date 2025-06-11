@@ -1,22 +1,34 @@
-"use client"
-
-import { useState, useMemo } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CurrencyDisplay } from "@/components/ui/currency-display"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { History, Search, Filter } from "lucide-react"
-import { useUserTransfers } from "@/hooks/use-Transactions"
-import type { Transfer } from "@/app/models/models"
-import { useAuth } from "@/hooks/use-auth"
+"use client";
+import { RefreshCw } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CurrencyDisplay } from "@/components/ui/currency-display";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { History, Search, Filter } from "lucide-react";
+import { useUserTransfers } from "@/hooks/use-Transactions";
+import type { Transfer } from "@/app/models/models";
+import { useAuth } from "@/hooks/use-auth";
 
 const StatusBadge = ({ status }: { status: string }) => {
-  let color = "gray"
-  if (status === "completed") color = "green"
-  else if (status === "pending") color = "yellow"
-  else if (status === "failed") color = "red"
+  let color = "gray";
+  if (status === "completed") color = "green";
+  else if (status === "pending") color = "yellow";
+  else if (status === "failed") color = "red";
 
   return (
     <Badge
@@ -25,21 +37,22 @@ const StatusBadge = ({ status }: { status: string }) => {
     >
       {status}
     </Badge>
-  )
-}
+  );
+};
 
 export default function HistoryPage() {
-  const { transfers, loading, error } = useUserTransfers()
-  const { user } = useAuth()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { transfers, loading, error } = useUserTransfers(refreshKey);
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Obtener los IDs de las cuentas del usuario logueado
-  const userAccountIds = user?.accounts?.map(acc => acc.accountId) || []
+  const userAccountIds = user?.accounts?.map((acc) => acc.accountId) || [];
 
   // Filtro y búsqueda
   const filteredTransactions = useMemo(() => {
-    let filtered: Transfer[] = transfers
+    let filtered: Transfer[] = transfers;
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -47,33 +60,33 @@ export default function HistoryPage() {
           t.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           t.fromId?.includes(searchTerm) ||
           t.toId?.includes(searchTerm)
-      )
+      );
     }
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter((t) => t.status === statusFilter)
+      filtered = filtered.filter((t) => t.status === statusFilter);
     }
 
-    return filtered
-  }, [transfers, searchTerm, statusFilter])
+    return filtered;
+  }, [transfers, searchTerm, statusFilter]);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("es-CR", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="lg" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -81,14 +94,18 @@ export default function HistoryPage() {
       <div className="flex items-center justify-center h-64">
         <p className="text-red-500">{error}</p>
       </div>
-    )
+    );
   }
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Historial de Transacciones</h1>
-        <p className="text-gray-300">Consulta todas tus transacciones y movimientos</p>
+        <h1 className="text-3xl font-bold text-white">
+          Historial de Transacciones
+        </h1>
+        <p className="text-gray-300">
+          Consulta todas tus transacciones y movimientos
+        </p>
       </div>
 
       <Card className="mb-6 bg-gray-800 border-gray-700">
@@ -111,7 +128,7 @@ export default function HistoryPage() {
                 />
               </div>
             </div>
-            <div>
+            <div className="flex items-center justify-end space-x-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Estado" />
@@ -123,6 +140,13 @@ export default function HistoryPage() {
                   <SelectItem value="failed">Fallido</SelectItem>
                 </SelectContent>
               </Select>
+              <button
+                onClick={() => setRefreshKey((k) => k + 1)}
+                className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+                title="Refrescar transacciones"
+              >
+                <RefreshCw className="w-5 h-5 text-white" />
+              </button>
             </div>
           </div>
         </CardContent>
@@ -142,7 +166,7 @@ export default function HistoryPage() {
           <div className="space-y-4">
             {filteredTransactions.map((transaction) => {
               // Si la cuenta logueada es la de origen, es un envío (rojo y negativo)
-              const isOutgoing = userAccountIds.includes(transaction.fromId)
+              const isOutgoing = userAccountIds.includes(transaction.fromId);
               return (
                 <div
                   key={transaction.id}
@@ -150,25 +174,35 @@ export default function HistoryPage() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <p className="font-medium text-white">{transaction.description || "Sin descripción"}</p>
+                      <p className="font-medium text-white">
+                        {transaction.description || "Sin descripción"}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-400">{formatDate(transaction.date as string)}</p>
-                    <p className="text-xs text-gray-500">Desde: {transaction.from?.iban}</p>
-                    <p className="text-xs text-gray-500">Hacia: {transaction.to?.iban}</p>
+                    <p className="text-sm text-gray-400">
+                      {formatDate(transaction.date as string)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Desde: {transaction.from?.iban}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Hacia: {transaction.to?.iban}
+                    </p>
                   </div>
                   <div className="text-right space-y-1">
                     <CurrencyDisplay
-                      amount={isOutgoing ? -transaction.amount : transaction.amount}
-                      
+                      amount={
+                        isOutgoing ? -transaction.amount : transaction.amount
+                      }
                       currency={transaction.currency || "$"}
-                      
-                      className={`font-medium ${isOutgoing ? "text-red-400" : "text-green-400"}`}
+                      className={`font-medium ${
+                        isOutgoing ? "text-red-400" : "text-green-400"
+                      }`}
                       showSign
                     />
                     <StatusBadge status={transaction.status} />
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
 
@@ -181,5 +215,5 @@ export default function HistoryPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
