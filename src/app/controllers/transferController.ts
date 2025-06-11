@@ -1,24 +1,17 @@
-// controllers/transferController.ts
-
 import { prisma } from "../lib/prisma";
 
+import { BANK_ENDPOINTS } from "@/config/rutas"; // Agrega esta línea
 import { generarHmac } from "@/lib/hmac";
 import type { Transfer } from "../models/models";
 import { exchangeRates } from "@/utils/exchangeRates";
 
-//
-// Constantes y tipos
-//
+
 type CurrencyCode = "CRC" | "USD" | "EUR";
 
-//
-// Helper para obtener la tasa de cambio entre dos divisas
-//
 function getExchangeRate(from: CurrencyCode, to: CurrencyCode): number {
   if (from === to) return 1;
   return (exchangeRates[from] as Record<CurrencyCode, number>)[to];
 }
-
 
 export async function createAccountTransfer(
   fromId: string,
@@ -119,16 +112,10 @@ export async function createSinpeTransfer(
   );
 }
 
-//
-// 3) Listar todas las transferencias
-//
 export async function listTransfers(): Promise<Transfer[]> {
   return prisma.transfer.findMany();
 }
 
-//
-// 4) Obtener historial de un usuario (por sus cuentas)
-//
 export async function getUserTransfers(userId: string): Promise<Transfer[]> {
   // Cargar IDs de todas las cuentas del usuario
   const user = await prisma.user.findUnique({
@@ -152,6 +139,7 @@ export async function getUserTransfers(userId: string): Promise<Transfer[]> {
     },
   });
 }
+
 export async function createAccountTransferByIban(
   fromId: string,
   toIban: string,
@@ -179,7 +167,7 @@ export async function createAccountTransferByIban(
     if (hmacHash !== expectedHmac) {
       throw new Error("HMAC inválido");
     }
-    console.log("hash -> "+ expectedHmac+" <--")
+    console.log("hash -> " + expectedHmac + " <--")
     // Reutiliza la lógica de transferencia por cuenta
     return createAccountTransfer(
       fromId,
@@ -198,7 +186,7 @@ export async function createAccountTransferByIban(
     if (hmacHash !== expectedHmac) {
       throw new Error("HMAC inválido");
     }
-    
+
     return transferToOtherBankByIban(
       fromId,
       toIban,
@@ -211,7 +199,6 @@ export async function createAccountTransferByIban(
     );
   }
 }
-
 
 export async function transferToOtherBankByIban(
   fromId: string,
@@ -259,7 +246,7 @@ export async function transferToOtherBankByIban(
     receiver: {
       account_number: toAccountNumber,
       bank_code: bankCode,
-      name: "", 
+      name: "",
     },
     amount: {
       value: amount,
@@ -270,10 +257,31 @@ export async function transferToOtherBankByIban(
       `${transactionId}|${fromAccount.number}|${fromAccount.bank.code}|${toAccountNumber}|${bankCode}|${amount}|${currency}|${description || ""}`
     ),
   };
+  const endpoint = BANK_ENDPOINTS[bankCode];
+  if (!endpoint) {
+    throw new Error(`No se encontró endpoint para el banco destino (${bankCode})`);
+  }
 
-  // Aquí deberías hacer el fetch/post al endpoint del otro banco usando jsonEstandar
-  console.log("JSON a enviar a otro banco:", jsonEstandar);
+  // Realiza el fetch al endpoint del banco destino
+  try {
+    const response = await fetch(`${endpoint}/api/sinpe-transfer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(jsonEstandar),
+    });
 
-  // Simula la respuesta (puedes lanzar error o retornar un mock)
-  throw new Error("Transferencia a otros bancos aún no implementada");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error en el banco destino: ${response.status} - ${errorText}`);
+    }
+
+    // Puedes adaptar esto según la respuesta esperada del otro banco
+    const result = await response.json();
+    return {
+      ...result,
+      // Completa los campos necesarios según tu modelo Transfer
+    } as Transfer;
+  } catch (error: any) {
+    throw new Error(`Error al transferir a otro banco: ${error.message}`);
+  }
 }
