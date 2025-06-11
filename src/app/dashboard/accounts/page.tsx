@@ -1,5 +1,5 @@
 "use client";
-
+import { RefreshCw } from "lucide-react"
 import { useEffect } from "react";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useAuthStore } from "@/app/stores/auth-store";
@@ -40,12 +40,21 @@ export default function AccountsPage() {
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Mi Cuenta</h1>
-        <p className="text-gray-300">Gestiona tu cuenta bancaria</p>
+      <div>
+        <div className="mb-8">
+          <div className="flex items-center">
+            <h1 className="text-3xl font-bold text-white">Mi Cuenta</h1>
+            <button
+              onClick={fetchUser}
+              className="ml-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+              title="Refrescar cuenta"
+            >
+              <RefreshCw className="w-5 h-5 text-white" />
+            </button>
+          </div>
+          <p className="text-gray-300">Gestiona tu cuenta bancaria</p>
+        </div>
+        <AccountList accounts={accounts} />
       </div>
-      <AccountList accounts={accounts} />
-    </div>
-  );
+    );
 }

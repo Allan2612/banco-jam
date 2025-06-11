@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/app/stores/auth-store";
 import { getUserTransfers } from "@/app/services/transferService";
 
-export function useUserTransfers() {
+export function useUserTransfers(refreshKey = 0)  {
   const user = useAuthStore((state) => state.user);
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ export function useUserTransfers() {
       })
       .catch((e) => setError(e.message || "Error al cargar transferencias"))
       .finally(() => setLoading(false));
-  }, [user?.id]);
+  }, [user?.id, refreshKey]);
 
   return { transfers, loading, error };
 }
